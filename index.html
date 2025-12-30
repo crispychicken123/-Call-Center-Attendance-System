@@ -16,7 +16,7 @@
             --vacation-color: #ffc107;
             --sick-color: #6f42c1;
             --offday-color: #fd7e14;
-            --weekend-color: #6c757d;
+            --weeklyoff-color: #20c997; /* New color for weekly off */
             --bg-light: #f8f9fa;
             --bg-white: #ffffff;
             --text-dark: #212529;
@@ -198,10 +198,6 @@
             min-width: 40px;
             font-weight: 700;
         }
-        
-        .weekend {
-            background-color: #e9ecef;
-        }
 
         .status-cell {
             cursor: pointer;
@@ -223,7 +219,7 @@
         .status-vacation { background-color: var(--vacation-color); color: var(--text-dark); }
         .status-sick { background-color: var(--sick-color); color: white; }
         .status-offday { background-color: var(--offday-color); color: white; }
-        .status-weekend { background-color: var(--weekend-color); color: white; cursor: default; }
+        .status-weeklyoff { background-color: var(--weeklyoff-color); color: white; cursor: default; } /* New style */
 
         .total-row {
             font-weight: 700;
@@ -253,7 +249,9 @@
             padding: 30px;
             border-radius: 12px;
             width: 90%;
-            max-width: 500px;
+            max-width: 700px; /* Wider for the schedule table */
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: var(--shadow-md);
             animation: slideIn 0.3s ease;
         }
@@ -355,6 +353,28 @@
             background-color: var(--absent-color);
         }
 
+        /* Weekly Off Schedule Table */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .schedule-table th, .schedule-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: center;
+        }
+        .schedule-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .schedule-table select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
         /* Report Modal Styles */
         .report-modal-content {
             width: 95%;
@@ -438,6 +458,9 @@
             <button class="btn btn-primary" id="addEmployeeBtn">
                 <i class="fas fa-user-plus"></i> Add Employee
             </button>
+            <button class="btn btn-secondary" id="weeklyOffBtn">
+                <i class="fas fa-calendar-week"></i> Manage Weekly Off-Days
+            </button>
             <button class="btn btn-primary" id="exportBtn">
                 <i class="fas fa-file-export"></i> Generate Monthly Report
             </button>
@@ -472,8 +495,8 @@
                 <span>OFF DAY (O)</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color status-weekend"></div>
-                <span>Weekend</span>
+                <div class="legend-color status-weeklyoff"></div>
+                <span>Weekly Off</span>
             </div>
         </div>
 
@@ -548,6 +571,35 @@
         </div>
     </div>
 
+    <!-- Modal for managing weekly offs -->
+    <div class="modal" id="weeklyOffModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Weekly Off-Days Schedule</h2>
+                <button class="close-btn" id="closeWeeklyOffModal">&times;</button>
+            </div>
+            <p>Select the off-day for each employee for each week of the month.</p>
+            <table class="schedule-table" id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Week 1</th>
+                        <th>Week 2</th>
+                        <th>Week 3</th>
+                        <th>Week 4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Schedule rows will be generated here -->
+                </tbody>
+            </table>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="cancelWeeklyOffBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveWeeklyOffBtn">Save Schedule</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for displaying the report -->
     <div class="modal" id="reportModal">
         <div class="modal-content report-modal-content">
@@ -582,6 +634,7 @@
 
         // Data structures
         let attendanceData = {};
+        let weeklyOffSchedule = {}; // NEW: To store weekly off schedule
         let nextEmployeeId = 9;
 
         // Data from the user's sheet
@@ -598,10 +651,24 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
+            initializeWeeklyOffSchedule(); // Initialize this first
             initializeAttendanceDataFromSchedule();
             renderCalendar();
             setupEventListeners();
         });
+
+        // NEW: Initialize a default rotating weekly off schedule
+        function initializeWeeklyOffSchedule() {
+            const daysOfWeek = [0, 1, 2, 3, 4, 5, 6]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
+            let dayIndex = 0;
+            employees.forEach((employee, index) => {
+                weeklyOffSchedule[employee.id] = [];
+                for (let i = 0; i < 4; i++) {
+                    weeklyOffSchedule[employee.id].push(daysOfWeek[(dayIndex + i) % 7]);
+                }
+                dayIndex++;
+            });
+        }
 
         // Initialize attendance data from the user's schedule
         function initializeAttendanceDataFromSchedule() {
@@ -653,13 +720,9 @@
             
             // Add day headers
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const dayOfWeek = date.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                
                 const th = document.createElement('th');
                 th.textContent = day;
-                th.className = `day-header ${isWeekend ? 'weekend' : ''}`;
+                th.className = 'day-header';
                 thead.appendChild(th);
             }
             
@@ -684,15 +747,17 @@
 
                 for (let day = 1; day <= daysInMonth; day++) {
                     const date = new Date(year, month, day);
-                    const dayOfWeek = date.getDay();
-                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    const dayOfWeek = date.getDay(); // 0=Sun, 1=Mon, ...
+                    const weekOfMonth = Math.ceil(day / 7); // 1, 2, 3, or 4
                     
                     const td = document.createElement('td');
                     td.className = 'status-cell';
                     
-                    if (isWeekend) {
-                        td.classList.add('status-weekend');
-                        td.textContent = 'W';
+                    // NEW: Check for weekly off first
+                    const employeeWeeklyOffs = weeklyOffSchedule[employee.id];
+                    if (employeeWeeklyOffs && employeeWeeklyOffs[weekOfMonth - 1] === dayOfWeek) {
+                        td.classList.add('status-weeklyoff');
+                        td.textContent = 'OFF';
                     } else {
                         const entry = attendanceData[employee.id][day];
                         td.classList.add(`status-${entry.status}`);
@@ -710,7 +775,12 @@
                         }
                     }
                     
-                    td.addEventListener('click', () => !isWeekend && openAttendanceModal(employee.id, day, attendanceData[employee.id][day]));
+                    td.addEventListener('click', () => {
+                        const isWeeklyOff = weeklyOffSchedule[employee.id] && weeklyOffSchedule[employee.id][weekOfMonth - 1] === dayOfWeek;
+                        if (!isWeeklyOff) {
+                            openAttendanceModal(employee.id, day, attendanceData[employee.id][day]);
+                        }
+                    });
                     tr.appendChild(td);
                 }
                 
@@ -742,6 +812,10 @@
             document.getElementById('closeEmployeeModal').addEventListener('click', closeEmployeeModal);
             document.getElementById('cancelEmployeeBtn').addEventListener('click', closeEmployeeModal);
             document.getElementById('saveEmployeeBtn').addEventListener('click', saveEmployee);
+
+            document.getElementById('closeWeeklyOffModal').addEventListener('click', closeWeeklyOffModal);
+            document.getElementById('cancelWeeklyOffBtn').addEventListener('click', closeWeeklyOffModal);
+            document.getElementById('saveWeeklyOffBtn').addEventListener('click', saveWeeklyOffSchedule);
             
             document.getElementById('closeReportModal').addEventListener('click', closeReportModal);
             document.getElementById('printReportBtn').addEventListener('click', () => window.print());
@@ -758,6 +832,7 @@
             
             // Button actions
             document.getElementById('addEmployeeBtn').addEventListener('click', openEmployeeModal);
+            document.getElementById('weeklyOffBtn').addEventListener('click', openWeeklyOffModal);
             document.getElementById('exportBtn').addEventListener('click', generateMonthlyReport);
             document.getElementById('refreshBtn').addEventListener('click', () => {
                 initializeAttendanceDataFromSchedule();
@@ -828,22 +903,17 @@
                 const newEmployee = { id: nextEmployeeId++, name: name };
                 employees.push(newEmployee);
                 
-                // Initialize attendance data for the new employee for the current month
+                // Initialize weekly off schedule for new employee
+                weeklyOffSchedule[newEmployee.id] = [1, 2, 3, 4]; // Default to Mon-Thu
+
+                // Initialize attendance data for the new employee
                 const month = parseInt(document.getElementById('monthSelect').value);
                 const year = parseInt(document.getElementById('yearSelect').value);
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 
                 attendanceData[newEmployee.id] = {};
                 for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(year, month, day);
-                    const dayOfWeek = date.getDay();
-                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                    
-                    if (isWeekend) {
-                        attendanceData[newEmployee.id][day] = { status: 'weekend', hours: 0 };
-                    } else {
-                        attendanceData[newEmployee.id][day] = { status: 'present', hours: 9 };
-                    }
+                    attendanceData[newEmployee.id][day] = { status: 'present', hours: 9 };
                 }
                 
                 renderCalendar();
@@ -852,6 +922,55 @@
             } else {
                 showNotification('Please enter an employee name.', 'error');
             }
+        }
+        
+        // --- Weekly Off Modal Functions ---
+        function openWeeklyOffModal() {
+            const modal = document.getElementById('weeklyOffModal');
+            const tbody = document.querySelector('#scheduleTable tbody');
+            const dayOptions = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            tbody.innerHTML = '';
+            employees.forEach(emp => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${emp.name}</td>`;
+                for (let i = 0; i < 4; i++) {
+                    const td = document.createElement('td');
+                    const select = document.createElement('select');
+                    dayOptions.forEach((day, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = day;
+                        if (weeklyOffSchedule[emp.id] && weeklyOffSchedule[emp.id][i] === index) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                    td.appendChild(select);
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function closeWeeklyOffModal() {
+            document.getElementById('weeklyOffModal').style.display = 'none';
+        }
+
+        function saveWeeklyOffSchedule() {
+            const rows = document.querySelectorAll('#scheduleTable tbody tr');
+            rows.forEach((row, index) => {
+                const employeeId = employees[index].id;
+                weeklyOffSchedule[employeeId] = [];
+                for (let i = 1; i <= 4; i++) {
+                    const select = row.cells[i].querySelector('select');
+                    weeklyOffSchedule[employeeId].push(parseInt(select.value));
+                }
+            });
+            renderCalendar();
+            closeWeeklyOffModal();
+            showNotification('Weekly off schedule saved successfully!');
         }
 
         // --- Report Generation ---
@@ -881,6 +1000,7 @@
                             <th>Vacation Days</th>
                             <th>Sick Leave</th>
                             <th>OFF DAYs</th>
+                            <th>Weekly Off Days</th>
                             <th>Total Overtime Hours</th>
                             <th>Overtime Days</th>
                         </tr>
@@ -888,17 +1008,21 @@
                     <tbody>
             `;
 
-            let grandTotals = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, offday: 0, otHours: 0, otDays: 0 };
+            let grandTotals = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, offday: 0, weeklyoff: 0, otHours: 0, otDays: 0 };
 
             employees.forEach((employee, index) => {
-                let counts = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, offday: 0, otHours: 0, otDays: 0 };
+                let counts = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, offday: 0, weeklyoff: 0, otHours: 0, otDays: 0 };
 
                 for (let day = 1; day <= daysInMonth; day++) {
                     const date = new Date(year, month, day);
                     const dayOfWeek = date.getDay();
-                    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                    const weekOfMonth = Math.ceil(day / 7);
                     
-                    if (!isWeekend) {
+                    // Check for weekly off
+                    const employeeWeeklyOffs = weeklyOffSchedule[employee.id];
+                    if (employeeWeeklyOffs && employeeWeeklyOffs[weekOfMonth - 1] === dayOfWeek) {
+                        counts.weeklyoff++;
+                    } else {
                         counts.workdays++;
                         const entry = attendanceData[employee.id][day];
                         switch(entry.status) {
@@ -926,6 +1050,7 @@
                         <td>${counts.vacation}</td>
                         <td>${counts.sick}</td>
                         <td>${counts.offday}</td>
+                        <td>${counts.weeklyoff}</td>
                         <td>${counts.otHours.toFixed(1)}</td>
                         <td>${counts.otDays}</td>
                     </tr>
@@ -942,6 +1067,7 @@
                     <td>${grandTotals.vacation}</td>
                     <td>${grandTotals.sick}</td>
                     <td>${grandTotals.offday}</td>
+                    <td>${grandTotals.weeklyoff}</td>
                     <td>${grandTotals.otHours.toFixed(1)}</td>
                     <td>${grandTotals.otDays}</td>
                 </tr>
