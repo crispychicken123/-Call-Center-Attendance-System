@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Center Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --present-color: #2ecc71;
+            --overtime-color: #3498db;
+            --absent-color: #e74c3c;
+            --vacation-color: #f39c12;
+            --sick-color: #9b59b6;
+            --offday-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .month-selector select {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            background-color: white;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #dde4e6;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th:first-child, td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: white;
+            font-weight: 500;
+        }
+
+        .day-header {
+            min-width: 40px;
+        }
+
+        .weekend {
+            background-color: #f8f9fa;
+        }
+
+        .status-cell {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .status-cell:hover {
+            transform: scale(1.1);
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status-present {
+            background-color: var(--present-color);
+            color: white;
+        }
+
+        .status-overtime {
+            background-color: var(--overtime-color);
+            color: white;
+        }
+
+        .status-absent {
+            background-color: var(--absent-color);
+            color: white;
+        }
+
+        .status-vacation {
+            background-color: var(--vacation-color);
+            color: white;
+        }
+
+        .status-sick {
+            background-color: var(--sick-color);
+            color: white;
+        }
+
+        .status-offday {
+            background-color: var(--offday-color);
+            color: white;
+        }
+
+        .total-row {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: var(--secondary-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-group input:disabled {
+            background-color: #ecf0f1;
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .stat-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2ecc71;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 200;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Report Modal Styles */
+        .report-modal-content {
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .report-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .no-print {
+            display: block;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .report-modal-content, .report-modal-content * {
+                visibility: visible;
+            }
+            .report-modal-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calendar-check"></i> Call Center Attendance System</h1>
+            <div class="month-selector">
+                <select id="monthSelect">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11" selected>December</option>
+                </select>
+                <select id="yearSelect">
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: var(--present-color);">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Present Today</h3>
+                    <p id="presentCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: var(--absent-color);">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Absent Today</h3>
+                    <p id="absentCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: var(--vacation-color);">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>On Leave Today</h3>
+                    <p id="leaveCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: var(--overtime-color);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Overtime Today</h3>
+                    <p id="overtimeCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="exportBtn">
+                <i class="fas fa-file-export"></i> Generate Report
+            </button>
+            <button class="btn btn-secondary" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color status-present"></div>
+                <span>Present (9h)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-overtime"></div>
+                <span>Overtime (>9h)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-absent"></div>
+                <span>Absent (0h)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-vacation"></div>
+                <span>Vacation</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-sick"></div>
+                <span>Sick Leave</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-offday"></div>
+                <span>Off Day</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <!-- Calendar days will be generated here -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Employee rows will be generated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing attendance -->
+    <div class="modal" id="attendanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Update Attendance</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="employeeSelect">Employee</label>
+                <select id="employeeSelect">
+                    <!-- Options will be generated here -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dateSelect">Date</label>
+                <input type="date" id="dateSelect">
+            </div>
+            <div class="form-group">
+                <label for="statusSelect">Status</label>
+                <select id="statusSelect">
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="vacation">Vacation</option>
+                    <option value="sick">Sick Leave</option>
+                    <option value="offday">Off Day</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hoursInput">Hours Worked</label>
+                <input type="number" id="hoursInput" min="0" max="24" step="0.5" value="9">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for displaying the report -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content report-modal-content">
+            <div class="modal-header no-print">
+                <h2>Monthly Attendance Report</h2>
+                <button class="close-btn" id="closeReportModal">&times;</button>
+            </div>
+            <div id="reportContent">
+                <!-- Report will be generated here -->
+            </div>
+            <div class="form-actions no-print">
+                <button class="btn btn-secondary" id="printReportBtn"><i class="fas fa-print"></i> Print Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        Data updated successfully!
+    </div>
+
+    <script>
+        // Updated Employee List
+        const employees = [
+            { id: 1, name: "AHMED KENAWY" },
+            { id: 2, name: "manju ranabhat" },
+            { id: 3, name: "NONA Rose" },
+            { id: 4, name: "Melvin compendio" },
+            { id: 5, name: "SALEH EMAD" },
+            { id: 6, name: "Asmita Sapkota" },
+            { id: 7, name: "nirjala" },
+            { id: 8, name: "HANA" }
+        ];
+
+        // Attendance data structure: { employeeId: { day: { status: 'present', hours: 9 } } }
+        let attendanceData = {};
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAttendanceData();
+            renderCalendar();
+            updateStats();
+            setupEventListeners();
+        });
+
+        // Initialize attendance data with random values for demonstration
+        function initializeAttendanceData() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            employees.forEach(employee => {
+                attendanceData[employee.id] = {};
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dayOfWeek = date.getDay();
+                    
+                    // Randomly assign status for demonstration
+                    const random = Math.random();
+                    let entry = { status: 'present', hours: 9 };
+                    
+                    // Weekend
+                    if (dayOfWeek === 5 || dayOfWeek === 6) {
+                        entry = { status: 'offday', hours: 0 };
+                    } else if (random < 0.05) {
+                        entry = { status: 'absent', hours: 0 };
+                    } else if (random < 0.1) {
+                        entry = { status: 'sick', hours: 0 };
+                    } else if (random < 0.15) {
+                        entry = { status: 'vacation', hours: 0 };
+                    } else if (random < 0.25) { // 10% chance of overtime
+                        entry = { status: 'present', hours: 9 + Math.floor(Math.random() * 4) + 1 }; // 10-13 hours
+                    }
+                    
+                    attendanceData[employee.id][day] = entry;
+                }
+            });
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const table = document.getElementById('attendanceTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+            
+            // Clear existing content
+            thead.innerHTML = '<th>Employee</th>';
+            tbody.innerHTML = '';
+            
+            // Add day headers
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+                
+                const th = document.createElement('th');
+                th.textContent = day;
+                th.className = `day-header ${isWeekend ? 'weekend' : ''}`;
+                thead.appendChild(th);
+            }
+            
+            // Add total column header
+            const totalHeader = document.createElement('th');
+            totalHeader.textContent = 'Total OT Hours';
+            totalHeader.className = 'total-header';
+            thead.appendChild(totalHeader);
+            
+            // Add employee rows
+            employees.forEach(employee => {
+                const tr = document.createElement('tr');
+                
+                // Employee name cell
+                const nameCell = document.createElement('td');
+                nameCell.textContent = employee.name;
+                tr.appendChild(nameCell);
+                
+                // Day cells
+                let totalOvertimeHours = 0;
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const td = document.createElement('td');
+                    td.className = 'status-cell';
+                    
+                    const entry = attendanceData[employee.id][day];
+                    td.classList.add(`status-${entry.status}`);
+                    
+                    if (entry.status === 'present' || entry.status === 'overtime') {
+                        td.textContent = entry.hours;
+                        if (entry.hours > 9) {
+                            totalOvertimeHours += (entry.hours - 9);
+                        }
+                    }
+                    
+                    // Add click event to open modal for editing
+                    td.addEventListener('click', function() {
+                        openAttendanceModal(employee.id, day, entry);
+                    });
+                    
+                    tr.appendChild(td);
+                }
+                
+                // Total cell
+                const totalCell = document.createElement('td');
+                totalCell.textContent = totalOvertimeHours.toFixed(1);
+                totalCell.className = 'total-cell';
+                tr.appendChild(totalCell);
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const today = new Date();
+            
+            // If viewing current month and year, calculate today's stats
+            if (month === today.getMonth() && year === today.getFullYear()) {
+                const day = today.getDate();
+                
+                let presentCount = 0;
+                let absentCount = 0;
+                let leaveCount = 0;
+                let overtimeCount = 0;
+                
+                employees.forEach(employee => {
+                    const entry = attendanceData[employee.id][day];
+                    switch(entry.status) {
+                        case 'present': 
+                            presentCount++; 
+                            if (entry.hours > 9) overtimeCount++;
+                            break;
+                        case 'absent': absentCount++; break;
+                        case 'vacation':
+                        case 'sick': leaveCount++; break;
+                    }
+                });
+                
+                document.getElementById('presentCount').textContent = presentCount;
+                document.getElementById('absentCount').textContent = absentCount;
+                document.getElementById('leaveCount').textContent = leaveCount;
+                document.getElementById('overtimeCount').textContent = overtimeCount;
+            } else {
+                 // Reset stats if not current month
+                 document.getElementById('presentCount').textContent = '-';
+                 document.getElementById('absentCount').textContent = '-';
+                 document.getElementById('leaveCount').textContent = '-';
+                 document.getElementById('overtimeCount').textContent = '-';
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Month and year selectors
+            document.getElementById('monthSelect').addEventListener('change', function() {
+                initializeAttendanceData();
+                renderCalendar();
+                updateStats();
+            });
+            
+            document.getElementById('yearSelect').addEventListener('change', function() {
+                initializeAttendanceData();
+                renderCalendar();
+                updateStats();
+            });
+            
+            // Modal controls
+            document.getElementById('closeModal').addEventListener('click', closeAttendanceModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeAttendanceModal);
+            document.getElementById('saveBtn').addEventListener('click', saveAttendance);
+            
+            document.getElementById('closeReportModal').addEventListener('click', closeReportModal);
+            document.getElementById('printReportBtn').addEventListener('click', () => window.print());
+
+            // Status selector change logic
+            document.getElementById('statusSelect').addEventListener('change', function() {
+                const hoursInput = document.getElementById('hoursInput');
+                if (this.value === 'present') {
+                    hoursInput.disabled = false;
+                    hoursInput.value = 9;
+                } else {
+                    hoursInput.disabled = true;
+                    hoursInput.value = 0;
+                }
+            });
+            
+            // Button actions
+            document.getElementById('exportBtn').addEventListener('click', generateMonthlyReport);
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                initializeAttendanceData();
+                renderCalendar();
+                updateStats();
+                showNotification('Data refreshed successfully!');
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === document.getElementById('attendanceModal')) {
+                    closeAttendanceModal();
+                }
+                if (event.target === document.getElementById('reportModal')) {
+                    closeReportModal();
+                }
+            });
+        }
+
+        // Open attendance modal
+        function openAttendanceModal(employeeId, day, entry) {
+            const modal = document.getElementById('attendanceModal');
+            const employeeSelect = document.getElementById('employeeSelect');
+            const dateSelect = document.getElementById('dateSelect');
+            const statusSelect = document.getElementById('statusSelect');
+            const hoursInput = document.getElementById('hoursInput');
+            
+            // Populate employee select
+            employeeSelect.innerHTML = '';
+            employees.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.id;
+                option.textContent = employee.name;
+                if (employee.id === employeeId) {
+                    option.selected = true;
+                }
+                employeeSelect.appendChild(option);
+            });
+            
+            // Set date
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const date = new Date(year, month, day);
+            dateSelect.value = date.toISOString().split('T')[0];
+            
+            // Set current status and hours
+            statusSelect.value = entry.status;
+            hoursInput.value = entry.hours;
+            
+            // Enable/disable hours input based on status
+            if (entry.status === 'present') {
+                hoursInput.disabled = false;
+            } else {
+                hoursInput.disabled = true;
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        // Close attendance modal
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').style.display = 'none';
+        }
+
+        // Save attendance
+        function saveAttendance() {
+            const employeeId = parseInt(document.getElementById('employeeSelect').value);
+            const dateStr = document.getElementById('dateSelect').value;
+            const status = document.getElementById('statusSelect').value;
+            const hours = parseFloat(document.getElementById('hoursInput').value) || 0;
+            
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            
+            attendanceData[employeeId][day] = { status, hours };
+            
+            renderCalendar();
+            updateStats();
+            closeAttendanceModal();
+            showNotification('Attendance updated successfully!');
+        }
+        
+        // Generate Monthly Report
+        function generateMonthlyReport() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthName = document.getElementById('monthSelect').options[month].text;
+            
+            const startDate = `01/${month + 1}/${year}`;
+            const endDate = `${daysInMonth}/${month + 1}/${year}`;
+
+            let reportHTML = `
+                <div class="report-header">
+                    <h2>CALL CENTER</h2>
+                    <h3>Month: ${monthName} ${year}</h3>
+                    <p>Period: ${startDate} - ${endDate}</p>
+                </div>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Employee name</th>
+                            <th>Working days</th>
+                            <th>Absent Days</th>
+                            <th>Vacation Days</th>
+                            <th>Sick leave</th>
+                            <th>Total days</th>
+                            <th>Overtime Hours</th>
+                            <th>Overtime Days</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let grandTotals = {
+                working: 0, absent: 0, vacation: 0, sick: 0, total: 0,
+                otHours: 0, otDays: 0
+            };
+
+            employees.forEach((employee, index) => {
+                let counts = {
+                    working: 0, absent: 0, vacation: 0, sick: 0,
+                    otHours: 0, otDays: 0
+                };
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dayOfWeek = date.getDay();
+                    const isWeekend = (dayOfWeek === 5 || dayOfWeek === 6);
+                    
+                    if (!isWeekend) {
+                        const entry = attendanceData[employee.id][day];
+                        switch(entry.status) {
+                            case 'present':
+                                counts.working++;
+                                if (entry.hours > 9) {
+                                    counts.otHours += (entry.hours - 9);
+                                    counts.otDays++;
+                                }
+                                break;
+                            case 'absent': counts.absent++; break;
+                            case 'vacation': counts.vacation++; break;
+                            case 'sick': counts.sick++; break;
+                        }
+                    }
+                }
+                counts.total = counts.absent + counts.vacation + counts.sick;
+                
+                // Add to grand totals
+                grandTotals.working += counts.working;
+                grandTotals.absent += counts.absent;
+                grandTotals.vacation += counts.vacation;
+                grandTotals.sick += counts.sick;
+                grandTotals.total += counts.total;
+                grandTotals.otHours += counts.otHours;
+                grandTotals.otDays += counts.otDays;
+
+                reportHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${employee.name}</td>
+                        <td>${counts.working}</td>
+                        <td>${counts.absent}</td>
+                        <td>${counts.vacation}</td>
+                        <td>${counts.sick}</td>
+                        <td>${counts.total}</td>
+                        <td>${counts.otHours.toFixed(1)}</td>
+                        <td>${counts.otDays}</td>
+                    </tr>
+                `;
+            });
+            
+            // Add total row
+            reportHTML += `
+                <tr class="total-row">
+                    <td><strong>Total</strong></td>
+                    <td></td>
+                    <td>${grandTotals.working}</td>
+                    <td>${grandTotals.absent}</td>
+                    <td>${grandTotals.vacation}</td>
+                    <td>${grandTotals.sick}</td>
+                    <td>${grandTotals.total}</td>
+                    <td>${grandTotals.otHours.toFixed(1)}</td>
+                    <td>${grandTotals.otDays}</td>
+                </tr>
+            </tbody>
+            </table>
+            `;
+
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        // Close Report Modal
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.backgroundColor = '#e74c3c';
+            } else {
+                notification.style.backgroundColor = '#2ecc71';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
