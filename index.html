@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Master Pro v4.1 (OT Edition)</title>
+    <title>HR Master Pro v4.2 (Print OT)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -13,7 +13,7 @@
             --primary-dark: #2563eb;
             --secondary: #ef4444;
             --success: #10b981;
-            --warning: #f59e0b; /* Orange for OT */
+            --warning: #f59e0b; 
             --bg-body: #f3f4f6;
             --surface: #ffffff;
             --text-main: #111827;
@@ -48,11 +48,9 @@
         /* --- Header --- */
         header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; margin-top: 0; }
         body.dark-mode header { background: rgba(30, 41, 59, 0.8); }
-        
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand i { color: var(--primary); font-size: 24px; }
         .brand h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
-
         .controls { display: flex; align-items: center; gap: 15px; }
         .date-picker-group { display: flex; background: var(--bg-body); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
         select { padding: 6px 12px; border: none; background: transparent; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-main); }
@@ -61,24 +59,20 @@
 
         /* --- Main Layout --- */
         main { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow: hidden; max-width: 1800px; margin: 0 auto; width: 100%; }
-
-        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
         .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border-left: 4px solid transparent; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
         .stat-info h3 { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
         .stat-info p { font-size: 24px; font-weight: 700; margin-top: 4px; }
 
-        /* Toolbar with Search */
+        /* Toolbar */
         .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 16px 20px; border-radius: var(--radius); box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px; border: 1px solid var(--border); }
         .search-wrapper { position: relative; width: 300px; }
         .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .search-input { width: 100%; padding: 10px 10px 10px 38px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-body); color: var(--text-main); font-family: inherit; }
-        
         .legend { display: flex; gap: 15px; font-size: 13px; color: var(--text-muted); }
         .legend-item { display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .dot { width: 10px; height: 10px; border-radius: 50%; }
-
         .actions { display: flex; gap: 10px; }
         .btn { padding: 10px 18px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: white; transition: 0.2s; box-shadow: var(--shadow); }
         .btn:active { transform: scale(0.98); }
@@ -86,10 +80,10 @@
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-secondary { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); }
         .btn-success { background: var(--success); }
-        .btn-warning { background: var(--warning); color: white; } /* OT Button Color */
+        .btn-warning { background: var(--warning); color: white; }
         .btn-danger { background: var(--secondary); }
 
-        /* Table Area */
+        /* Table */
         .table-wrapper { flex: 1; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: auto; position: relative; border: 1px solid var(--border); }
         table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1400px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-size: 13px; height: 48px; }
@@ -98,19 +92,16 @@
         th:first-child, td:first-child { position: sticky; left: 0; z-index: 10; background: var(--surface); text-align: left; min-width: 260px; padding-left: 20px; border-right: 2px solid var(--border); }
         tbody tr:hover td:first-child { background: var(--bg-body); }
         tbody tr:hover td { background-color: rgba(0,0,0,0.02); }
-
         .emp-cell { display: flex; align-items: center; gap: 14px; }
         .emp-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); }
         .emp-info { display: flex; flex-direction: column; }
         .emp-name { font-weight: 600; color: var(--text-main); font-size: 14px; }
         .emp-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* Cell Statuses */
         .day-cell { cursor: pointer; transition: 0.1s; user-select: none; font-weight: 500; }
         .day-cell:hover { filter: brightness(0.95); z-index: 5; position: relative; transform: scale(1.1); }
         .status-unfilled { color: var(--text-muted); opacity: 0.3; }
         .status-present { background-color: #dcfce7; color: #166534; }
-        .status-overtime { background-color: #cffafe; color: #0e7490; font-weight: 700; border: 2px solid #06b6d4; } /* Emphasis on OT */
+        .status-overtime { background-color: #cffafe; color: #0e7490; font-weight: 700; border: 2px solid #06b6d4; }
         .status-absent { background-color: #fee2e2; color: #991b1b; }
         .status-vacation { background-color: #fef3c7; color: #92400e; }
         .status-sick { background-color: #ede9fe; color: #5b21b6; }
@@ -148,7 +139,7 @@
         .toast.success { border-left: 4px solid var(--success); }
         .toast.error { border-left: 4px solid var(--secondary); }
 
-        /* Print */
+        /* --- PRINT STYLES --- */
         @media print {
             body * { visibility: hidden; height: auto; overflow: visible; }
             #printEmployeeArea, .table-wrapper, .table-wrapper * { visibility: visible; }
@@ -158,13 +149,23 @@
             .no-print { display: none !important; }
             .day-cell { border: 1px solid #000 !important; color: black !important; background: white !important; }
         }
+
         #printEmployeeArea { display: none; }
         .print-header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .print-grid { display: grid; grid-template-columns: 180px 1fr; gap: 40px; }
         .print-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; }
-        .print-section { margin-bottom: 20px; }
+        .print-section { margin-bottom: 25px; }
+        .print-section h4 { font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
         .print-row { display: flex; margin-bottom: 10px; font-size: 14px; }
         .print-label { font-weight: 600; width: 150px; color: #555; }
+        .print-val { color: #000; flex: 1; }
+        
+        /* OT Stats in Print */
+        .ot-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .ot-box { background: #fdf6ec; border: 1px solid #fcd34d; padding: 15px; border-radius: 8px; text-align: center; }
+        .ot-box h5 { font-size: 12px; color: #92400e; text-transform: uppercase; margin-bottom: 5px; }
+        .ot-box p { font-size: 20px; font-weight: 700; color: #b45309; }
+        .ot-highlight { border-color: #f59e0b; background: #fffbeb; }
     </style>
 </head>
 <body>
@@ -184,10 +185,10 @@
     <!-- Header -->
     <header class="no-print">
         <div class="brand">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-print"></i>
             <div>
-                <h1>HR Master Pro <span style="color:var(--warning); font-size:12px; font-weight:400;">(OT)</span></h1>
-                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Attendance & Overtime</span>
+                <h1>HR Master Pro <span style="color:var(--primary); font-size:12px; font-weight:400;">(Print OT)</span></h1>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Attendance & Reports</span>
             </div>
         </div>
         <div class="controls">
@@ -221,9 +222,7 @@
                 <div class="legend" id="legendContainer"></div>
                 
                 <div class="actions">
-                    <!-- NEW: QUICK OT BUTTON -->
                     <button class="btn btn-warning" onclick="app.openOTModal()"><i class="fas fa-plus-circle"></i> Quick OT</button>
-                    
                     <button class="btn btn-secondary" onclick="app.openBulkModal()"><i class="fas fa-calendar-alt"></i> Bulk</button>
                     <button class="btn btn-primary" onclick="app.openEmployeeModal()"><i class="fas fa-user-plus"></i> Employee</button>
                     <button class="btn btn-success" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export</button>
@@ -346,7 +345,7 @@
         </div>
     </div>
 
-    <!-- NEW: Quick OT Modal -->
+    <!-- Quick OT Modal -->
     <div class="modal no-print" id="otModal">
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header">
@@ -368,7 +367,7 @@
                 <div class="form-group">
                     <label class="form-label">Extra Hours (OT)</label>
                     <input type="number" id="otHours" class="form-input" value="2" min="0.5" step="0.5">
-                    <small style="color: var(--text-muted); font-size: 11px;">These hours will be added to the standard 9 hours.</small>
+                    <small style="color: var(--text-muted); font-size: 11px;">These hours will be added to standard 9 hours.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Action</label>
@@ -432,7 +431,7 @@
 
     <script>
         const CONFIG = {
-            storageKeys: { employees: 'att_v41_employees', data: 'att_v41_data' },
+            storageKeys: { employees: 'att_v42_employees', data: 'att_v42_data' },
             statusColors: {
                 unfilled: { class: 'status-unfilled' },
                 present: { class: 'status-present' },
@@ -474,91 +473,106 @@
             },
             handleSearch() { this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); this.renderTable(); },
 
-            // --- NEW: Quick OT Logic ---
-            openOTModal() {
-                const sel = document.getElementById('otEmpSelect');
-                sel.innerHTML = '<option value="all">ALL EMPLOYEES</option>' + this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-                const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
-                document.getElementById('otStart').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-01`;
-                document.getElementById('otEnd').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-${daysInMonth}`;
-                document.getElementById('otModal').classList.add('active');
-            },
-
-            applyQuickOT() {
-                const empId = document.getElementById('otEmpSelect').value;
-                const startDateStr = document.getElementById('otStart').value;
-                const endDateStr = document.getElementById('otEnd').value;
-                const otExtra = parseFloat(document.getElementById('otHours').value);
-                const action = document.getElementById('otAction').value;
-
-                if(!startDateStr || !endDateStr || isNaN(otExtra)) { this.toast('Invalid Input', 'error'); return; }
-                
-                const startDate = new Date(startDateStr);
-                const endDate = new Date(endDateStr);
-                if(endDate < startDate) { this.toast('End date cannot be before start', 'error'); return; }
-
-                const key = this.getMonthDataKey();
-                if(!this.data.attendance[key]) this.data.attendance[key] = {};
-                const targetEmps = empId === 'all' ? this.data.employees : this.data.employees.filter(e => e.id == empId);
-                
-                let loopDate = new Date(startDate);
-                while (loopDate <= endDate) {
-                    if(loopDate.getMonth() === this.data.currentMonth && loopDate.getFullYear() === this.data.currentYear) {
-                        const day = loopDate.getDate();
-                        targetEmps.forEach(emp => {
-                            if(!this.data.attendance[key][emp.id]) this.data.attendance[key][emp.id] = {};
-                            const existing = this.data.attendance[key][emp.id][day];
-                            
-                            // Logic: Only apply if Present or Empty (don't change Sick/Vacation to OT usually)
-                            if(!existing || existing.status === 'present' || existing.status === 'overtime') {
-                                let finalHours = 9;
-                                if(action === 'add') finalHours = (existing ? existing.hours : 9) + otExtra;
-                                if(action === 'override') finalHours = otExtra;
-
-                                this.data.attendance[key][emp.id][day] = { status: 'present', hours: finalHours };
-                            }
-                        });
-                    }
-                    loopDate.setDate(loopDate.getDate() + 1);
-                }
-                this.saveData();
-                this.renderTable();
-                this.closeModals();
-                this.toast('OT Applied', 'success');
-            },
-
+            // --- UPDATED: Print Profile with OT Calculation ---
             printEmployeeProfile() {
                 const id = document.getElementById('editEmpId').value;
                 const emp = id ? this.data.employees.find(e => e.id == id) : this.getFormValues();
                 if(!emp) return;
+
+                // 1. Calculate Stats for Current Viewed Month
+                const monthIndex = parseInt(document.getElementById('monthSelect').value);
+                const year = parseInt(document.getElementById('yearSelect').value);
+                const monthName = document.getElementById('monthSelect').options[monthIndex].text;
+                const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                
+                // Attendance Data Key
+                const attKey = `${year}_${monthIndex}`;
+                const monthData = this.data.attendance[attKey] ? this.data.attendance[attKey][emp.id] : {};
+
+                let totalHours = 0;
+                let totalOT = 0;
+                let daysPresent = 0;
+                let daysVacation = 0;
+                let daysSick = 0;
+
+                for(let d=1; d<=daysInMonth; d++) {
+                    const dayAtt = monthData ? monthData[d] : null;
+                    if(dayAtt) {
+                        if(dayAtt.status === 'present' || dayAtt.status === 'overtime') {
+                            daysPresent++;
+                            totalHours += dayAtt.hours;
+                            // Calculate OT (Any hours over 9)
+                            if(dayAtt.hours > 9) {
+                                totalOT += (dayAtt.hours - 9);
+                            }
+                        } else if (dayAtt.status === 'vacation') {
+                            daysVacation++;
+                        } else if (dayAtt.status === 'sick') {
+                            daysSick++;
+                        }
+                    }
+                }
+
+                // 2. Generate HTML
                 const printArea = document.getElementById('printEmployeeArea');
-                printArea.innerHTML = `
+                const html = `
                     <div class="print-header">
-                        <div style="font-size: 24px; font-weight: 700; color: #333;">EMPLOYEE PROFILE</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">EMPLOYEE PROFILE & SUMMARY</div>
                         <div style="font-size: 14px; color: #666;">Generated: ${new Date().toLocaleDateString()}</div>
                     </div>
+                    
                     <div class="print-grid">
-                        <div style="text-align:center;">
-                            <img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo" style="margin:0 auto;">
-                            <h2 style="margin-top:15px; color:#333;">${emp.name}</h2>
-                            <p style="font-size:14px; color:#666;">ID: ${emp.jobNumber || 'N/A'}</p>
-                        </div>
+                        <!-- Left: Photo & Info -->
                         <div>
+                            <div style="text-align:center;">
+                                <img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo" style="margin:0 auto;">
+                                <h2 style="margin-top:15px; color:#333;">${emp.name}</h2>
+                                <p style="font-size:14px; color:#666;">ID: ${emp.jobNumber || 'N/A'}</p>
+                            </div>
+                            
                             <div class="print-section">
-                                <div class="print-row"><span class="print-label">Name:</span> <span class="print-val">${emp.name}</span></div>
-                                <div class="print-row"><span class="print-label">Nationality:</span> <span class="print-val">${emp.nationality || '-'}</span></div>
                                 <div class="print-row"><span class="print-label">Phone:</span> <span class="print-val">${emp.phone || '-'}</span></div>
+                                <div class="print-row"><span class="print-label">Nationality:</span> <span class="print-val">${emp.nationality || '-'}</span></div>
                                 <div class="print-row"><span class="print-label">Join Date:</span> <span class="print-val">${emp.joinDate || '-'}</span></div>
                             </div>
+                        </div>
+
+                        <!-- Right: Docs & OT Stats -->
+                        <div>
                             <div class="print-section">
+                                <h4>Documents</h4>
                                 <div class="print-row"><span class="print-label">Passport:</span> <span class="print-val">${emp.passportNo || '-'} (Exp: ${emp.passportExp || '-'})</span></div>
                                 <div class="print-row"><span class="print-label">Emirates ID:</span> <span class="print-val">${emp.eidNo || '-'} (Exp: ${emp.eidExp || '-'})</span></div>
                                 <div class="print-row"><span class="print-label">Labor Card:</span> <span class="print-val">${emp.laborCard || '-'}</span></div>
                                 <div class="print-row"><span class="print-label">Insurance:</span> <span class="print-val">Exp: ${emp.insuranceExp || '-'}</span></div>
                             </div>
+
+                            <!-- NEW: OT Summary Box -->
+                            <div class="print-section">
+                                <h4 style="color: #b45309;">Attendance Summary (${monthName} ${year})</h4>
+                                <div class="ot-stats">
+                                    <div class="ot-box">
+                                        <h5>Days Present</h5>
+                                        <p>${daysPresent}</p>
+                                    </div>
+                                    <div class="ot-box ot-highlight">
+                                        <h5>Total OT Hours</h5>
+                                        <p>${totalOT > 0 ? '+' + totalOT : '0'}</p>
+                                    </div>
+                                    <div class="ot-box">
+                                        <h5>Total Worked</h5>
+                                        <p>${totalHours} Hrs</p>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; font-size: 12px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div><i class="fas fa-plane" style="color:#f59e0b"></i> Vacation: ${daysVacation} days</div>
+                                    <div><i class="fas fa-user-injured" style="color:#8b5cf6"></i> Sick: ${daysSick} days</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
+                printArea.innerHTML = html;
                 window.print();
             },
 
@@ -879,6 +893,53 @@
                 this.renderTable();
                 this.closeModals();
                 this.toast('Updated', 'success');
+            },
+
+            openOTModal() {
+                const sel = document.getElementById('otEmpSelect');
+                sel.innerHTML = '<option value="all">ALL EMPLOYEES</option>' + this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+                const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
+                document.getElementById('otStart').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-01`;
+                document.getElementById('otEnd').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-${daysInMonth}`;
+                document.getElementById('otModal').classList.add('active');
+            },
+
+            applyQuickOT() {
+                const empId = document.getElementById('otEmpSelect').value;
+                const startDateStr = document.getElementById('otStart').value;
+                const endDateStr = document.getElementById('otEnd').value;
+                const otExtra = parseFloat(document.getElementById('otHours').value);
+                const action = document.getElementById('otAction').value;
+
+                if(!startDateStr || !endDateStr || isNaN(otExtra)) { this.toast('Invalid Input', 'error'); return; }
+                const startDate = new Date(startDateStr);
+                const endDate = new Date(endDateStr);
+                if(endDate < startDate) { this.toast('End date cannot be before start', 'error'); return; }
+
+                const key = this.getMonthDataKey();
+                if(!this.data.attendance[key]) this.data.attendance[key] = {};
+                const targetEmps = empId === 'all' ? this.data.employees : this.data.employees.filter(e => e.id == empId);
+                let loopDate = new Date(startDate);
+                while (loopDate <= endDate) {
+                    if(loopDate.getMonth() === this.data.currentMonth && loopDate.getFullYear() === this.data.currentYear) {
+                        const day = loopDate.getDate();
+                        targetEmps.forEach(emp => {
+                            if(!this.data.attendance[key][emp.id]) this.data.attendance[key][emp.id] = {};
+                            const existing = this.data.attendance[key][emp.id][day];
+                            if(!existing || existing.status === 'present' || existing.status === 'overtime') {
+                                let finalHours = 9;
+                                if(action === 'add') finalHours = (existing ? existing.hours : 9) + otExtra;
+                                if(action === 'override') finalHours = otExtra;
+                                this.data.attendance[key][emp.id][day] = { status: 'present', hours: finalHours };
+                            }
+                        });
+                    }
+                    loopDate.setDate(loopDate.getDate() + 1);
+                }
+                this.saveData();
+                this.renderTable();
+                this.closeModals();
+                this.toast('OT Applied', 'success');
             },
 
             openBulkModal() {
