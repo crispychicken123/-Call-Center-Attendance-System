@@ -221,6 +221,14 @@
         .status-offday { background-color: var(--offday-color); color: white; }
         .status-weeklyoff { background-color: var(--weeklyoff-color); color: white; cursor: default; }
 
+        .status-sick.has-certificate::after {
+            content: ' 📎';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+        }
+
         .total-row {
             font-weight: 700;
             background-color: var(--bg-light);
@@ -249,7 +257,7 @@
             padding: 30px;
             border-radius: 12px;
             width: 90%;
-            max-width: 900px; /* Wider for the schedule table */
+            max-width: 900px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: var(--shadow-md);
@@ -330,6 +338,32 @@
             margin-top: 25px;
         }
 
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-upload-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-upload-label {
+            display: block;
+            padding: 12px;
+            background-color: var(--bg-light);
+            border: 1px dashed var(--accent-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+        .file-upload-label:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -392,18 +426,46 @@
             left: 0;
         }
         
-        /* Print Styles */
-        .print-only {
-            display: none;
+        /* Report Modal Styles */
+        .report-modal-content {
+            width: 95%;
+            max-width: 1400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: 8px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .report-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .no-print {
+            display: block;
         }
         @media print {
             body * {
                 visibility: hidden;
             }
-            .print-area, .print-area * {
+            .report-modal-content, .report-modal-content * {
                 visibility: visible;
             }
-            .print-area {
+            .report-modal-content {
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -411,9 +473,6 @@
             }
             .no-print {
                 display: none !important;
-            }
-            .print-only {
-                display: block !important;
             }
         }
     </style>
@@ -500,18 +559,15 @@
                 <thead>
                     <tr>
                         <th>Employee Name</th>
-                        <!-- Calendar days will be generated here -->
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Employee rows will be generated here -->
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Modals for Attendance, Employee, Weekly Off (from previous version) -->
-    <!-- ... (keeping previous modals for brevity, they are included in the final code) ... -->
+    <!-- Modal for adding/editing attendance -->
     <div class="modal" id="attendanceModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -540,6 +596,15 @@
                 <label for="hoursInput">Work Hours</label>
                 <input type="number" id="hoursInput" min="0" max="24" step="0.5" value="9">
             </div>
+            <div class="form-group" id="certificateGroup" style="display: none;">
+                <label>Medical Certificate (Optional)</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="certificateInput" accept=".pdf,.jpg,.jpeg,.png">
+                    <label for="certificateInput" class="file-upload-label" id="fileLabel">
+                        <i class="fas fa-cloud-upload-alt"></i> Click to upload certificate
+                    </label>
+                </div>
+            </div>
             <div class="form-actions">
                 <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
                 <button class="btn btn-primary" id="saveBtn">Save</button>
@@ -547,6 +612,7 @@
         </div>
     </div>
 
+    <!-- Modal for adding employee -->
     <div class="modal" id="employeeModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -564,6 +630,7 @@
         </div>
     </div>
 
+    <!-- Modal for managing weekly offs -->
     <div class="modal" id="weeklyOffModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -590,7 +657,7 @@
         </div>
     </div>
 
-    <!-- NEW: Weekly Schedule Modal -->
+    <!-- Modal for Weekly Schedule -->
     <div class="modal" id="weeklyScheduleModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -612,11 +679,9 @@
                     <thead>
                         <tr>
                             <th>Day</th>
-                            <!-- Employee names will be generated here -->
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Schedule rows will be generated here -->
                     </tbody>
                 </table>
             </div>
@@ -628,8 +693,20 @@
         </div>
     </div>
 
-    <!-- Print Area for Weekly Schedule -->
-    <div class="print-area" id="printArea"></div>
+    <!-- Modal for displaying the report -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content report-modal-content">
+            <div class="modal-header no-print">
+                <h2>Monthly Attendance & Absence Report</h2>
+                <button class="close-btn" id="closeReportModal">&times;</button>
+            </div>
+            <div id="reportContent">
+            </div>
+            <div class="form-actions no-print">
+                <button class="btn btn-primary" id="printReportBtn"><i class="fas fa-print"></i> Print Report</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Notification -->
     <div class="notification" id="notification"></div>
@@ -649,7 +726,7 @@
         // Data structures
         let attendanceData = {};
         let weeklyOffSchedule = {};
-        let weeklyStaffSchedule = {}; // NEW: For detailed weekly schedule
+        let weeklyStaffSchedule = {};
         let nextEmployeeId = 8;
 
         // Initial data for Week 1 provided by the user
@@ -666,25 +743,14 @@
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             initializeWeeklyOffSchedule();
-            initializeWeeklyStaffSchedule(); // NEW
-            initializeAttendanceDataFromSchedule();
+            initializeWeeklyStaffSchedule();
+            initializeAttendanceData();
             renderCalendar();
             setupEventListeners();
         });
 
-        // NEW: Initialize weekly staff schedule with user data
-        function initializeWeeklyStaffSchedule() {
-            // Initialize with empty schedules for all weeks
-            for (let w = 1; w <= 5; w++) {
-                weeklyStaffSchedule[w] = {};
-            }
-            // Populate Week 1 with the provided data
-            weeklyStaffSchedule[1] = JSON.parse(JSON.stringify(initialWeek1Schedule));
-        }
-        
-        // ... (keep other functions like initializeWeeklyOffSchedule, initializeAttendanceDataFromSchedule, renderCalendar) ...
         function initializeWeeklyOffSchedule() {
-            const daysOfWeek = [0, 1, 2, 3, 4, 5, 6];
+            const daysOfWeek = [0, 1, 2, 3, 4, 5, 6]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
             let dayIndex = 0;
             employees.forEach((employee, index) => {
                 weeklyOffSchedule[employee.id] = [];
@@ -695,12 +761,26 @@
             });
         }
 
-        function initializeAttendanceDataFromSchedule() {
-            attendanceData = {};
+        function initializeWeeklyStaffSchedule() {
+            for (let w = 1; w <= 5; w++) {
+                weeklyStaffSchedule[w] = {};
+            }
+            weeklyStaffSchedule[1] = JSON.parse(JSON.stringify(initialWeek1Schedule));
+        }
+
+        function initializeAttendanceData() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
             employees.forEach(employee => {
-                attendanceData[employee.id] = {};
-                for (let day = 1; day <= 31; day++) {
-                    attendanceData[employee.id][day] = { status: 'present', hours: 9 };
+                if (!attendanceData[employee.id]) {
+                    attendanceData[employee.id] = {};
+                }
+                for (let day = 1; day <= daysInMonth; day++) {
+                    if (!attendanceData[employee.id][day]) {
+                        attendanceData[employee.id][day] = { status: 'present', hours: 9, certificate: null };
+                    }
                 }
             });
         }
@@ -755,14 +835,21 @@
                     } else {
                         const entry = attendanceData[employee.id][day];
                         td.classList.add(`status-${entry.status}`);
+                        
                         if (entry.status === 'present') {
                             td.textContent = entry.hours;
                             totalDaysWorked++;
-                            if (entry.hours > 9) totalOvertimeHours += (entry.hours - 9);
+                            if (entry.hours > 9) {
+                                totalOvertimeHours += (entry.hours - 9);
+                            }
                         } else if (entry.status === 'absent') {
                             td.textContent = '0';
                         } else {
                             td.textContent = entry.status.charAt(0).toUpperCase();
+                        }
+
+                        if (entry.status === 'sick' && entry.certificate) {
+                            td.classList.add('has-certificate');
                         }
                     }
                     
@@ -784,9 +871,8 @@
         }
 
         function setupEventListeners() {
-            // ... (keep existing listeners) ...
-            document.getElementById('monthSelect').addEventListener('change', () => { initializeAttendanceDataFromSchedule(); renderCalendar(); });
-            document.getElementById('yearSelect').addEventListener('change', () => { initializeAttendanceDataFromSchedule(); renderCalendar(); });
+            document.getElementById('monthSelect').addEventListener('change', () => { initializeAttendanceData(); renderCalendar(); });
+            document.getElementById('yearSelect').addEventListener('change', () => { initializeAttendanceData(); renderCalendar(); });
             
             document.getElementById('closeModal').addEventListener('click', () => document.getElementById('attendanceModal').style.display = 'none');
             document.getElementById('cancelBtn').addEventListener('click', () => document.getElementById('attendanceModal').style.display = 'none');
@@ -799,30 +885,45 @@
             document.getElementById('closeWeeklyOffModal').addEventListener('click', () => document.getElementById('weeklyOffModal').style.display = 'none');
             document.getElementById('cancelWeeklyOffBtn').addEventListener('click', () => document.getElementById('weeklyOffModal').style.display = 'none');
             document.getElementById('saveWeeklyOffBtn').addEventListener('click', saveWeeklyOffSchedule);
-            
-            // NEW: Listeners for Weekly Schedule Modal
-            document.getElementById('weeklyScheduleBtn').addEventListener('click', openWeeklyScheduleModal);
-            document.getElementById('closeWeeklyScheduleModal').addEventListener('click', closeWeeklyScheduleModal);
-            document.getElementById('cancelScheduleBtn').addEventListener('click', closeWeeklyScheduleModal);
+
+            document.getElementById('closeWeeklyScheduleModal').addEventListener('click', () => document.getElementById('weeklyScheduleModal').style.display = 'none');
+            document.getElementById('cancelScheduleBtn').addEventListener('click', () => document.getElementById('weeklyScheduleModal').style.display = 'none');
             document.getElementById('saveScheduleBtn').addEventListener('click', saveWeeklyStaffScheduleData);
             document.getElementById('printScheduleBtn').addEventListener('click', printWeeklySchedule);
             document.getElementById('weekSelect').addEventListener('change', populateWeeklyScheduleTable);
 
-            document.getElementById('exportBtn').addEventListener('click', generateMonthlyReport);
-            document.getElementById('refreshBtn').addEventListener('click', () => {
-                initializeAttendanceDataFromSchedule();
-                renderCalendar();
-                showNotification('Data refreshed successfully!');
-            });
-            
+            document.getElementById('closeReportModal').addEventListener('click', () => document.getElementById('reportModal').style.display = 'none');
+            document.getElementById('printReportBtn').addEventListener('click', () => window.print());
+
             document.getElementById('statusSelect').addEventListener('change', function() {
                 const hoursInput = document.getElementById('hoursInput');
-                hoursInput.disabled = this.value !== 'present';
-                hoursInput.value = this.value === 'present' ? 9 : 0;
+                const certificateGroup = document.getElementById('certificateGroup');
+                if (this.value === 'present') {
+                    hoursInput.disabled = false; hoursInput.value = 9;
+                    certificateGroup.style.display = 'none';
+                } else if (this.value === 'sick') {
+                    hoursInput.disabled = true; hoursInput.value = 0;
+                    certificateGroup.style.display = 'block';
+                } else {
+                    hoursInput.disabled = true; hoursInput.value = 0;
+                    certificateGroup.style.display = 'none';
+                }
+            });
+
+            document.getElementById('certificateInput').addEventListener('change', function() {
+                const fileName = this.files.length > 0 ? this.files[0].name : 'Click to upload certificate';
+                document.getElementById('fileLabel').innerHTML = `<i class="fas fa-file-check"></i> ${fileName}`;
             });
             
             document.getElementById('addEmployeeBtn').addEventListener('click', () => document.getElementById('employeeModal').style.display = 'flex');
             document.getElementById('weeklyOffBtn').addEventListener('click', openWeeklyOffModal);
+            document.getElementById('weeklyScheduleBtn').addEventListener('click', openWeeklyScheduleModal);
+            document.getElementById('exportBtn').addEventListener('click', generateMonthlyReport);
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                initializeAttendanceData();
+                renderCalendar();
+                showNotification('Data refreshed successfully!');
+            });
             
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
@@ -831,7 +932,7 @@
             });
         }
 
-        // ... (keep other modal functions like openAttendanceModal, saveAttendance, etc.) ...
+        // --- Modal Functions ---
         function openAttendanceModal(employeeId, day, entry) {
             const modal = document.getElementById('attendanceModal');
             const employeeSelect = document.getElementById('employeeSelect');
@@ -847,6 +948,13 @@
             statusSelect.dispatchEvent(new Event('change'));
             document.getElementById('hoursInput').value = entry.hours;
             
+            const fileLabel = document.getElementById('fileLabel');
+            if (entry.status === 'sick' && entry.certificate) {
+                fileLabel.innerHTML = `<i class="fas fa-file-check"></i> ${entry.certificate}`;
+            } else {
+                fileLabel.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Click to upload certificate`;
+            }
+            
             modal.style.display = 'flex';
         }
 
@@ -855,11 +963,14 @@
             const dateStr = document.getElementById('dateSelect').value;
             const status = document.getElementById('statusSelect').value;
             const hours = parseFloat(document.getElementById('hoursInput').value) || 0;
+            const certificateFile = document.getElementById('certificateInput').files[0];
             
             const date = new Date(dateStr);
             const day = date.getDate();
             
-            attendanceData[employeeId][day] = { status, hours };
+            const certificate = (status === 'sick' && certificateFile) ? certificateFile.name : (attendanceData[employeeId][day]?.certificate || null);
+            
+            attendanceData[employeeId][day] = { status, hours, certificate };
             
             renderCalendar();
             document.getElementById('attendanceModal').style.display = 'none';
@@ -872,13 +983,7 @@
                 const newEmployee = { id: nextEmployeeId++, name: name };
                 employees.push(newEmployee);
                 weeklyOffSchedule[newEmployee.id] = [1, 2, 3, 4];
-                const month = parseInt(document.getElementById('monthSelect').value);
-                const year = parseInt(document.getElementById('yearSelect').value);
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                attendanceData[newEmployee.id] = {};
-                for (let day = 1; day <= daysInMonth; day++) {
-                    attendanceData[newEmployee.id][day] = { status: 'present', hours: 9 };
-                }
+                initializeAttendanceData();
                 renderCalendar();
                 document.getElementById('employeeModal').style.display = 'none';
                 document.getElementById('employeeNameInput').value = '';
@@ -931,7 +1036,6 @@
             showNotification('Weekly off schedule saved successfully!');
         }
 
-        // --- NEW: Weekly Schedule Modal Functions ---
         function openWeeklyScheduleModal() {
             document.getElementById('weeklyScheduleModal').style.display = 'flex';
             populateWeeklyScheduleTable();
@@ -948,7 +1052,6 @@
             const thead = table.querySelector('thead tr');
             const tbody = table.querySelector('tbody');
 
-            // Populate header with employee names
             thead.innerHTML = '<th>Day</th>';
             employees.forEach(emp => {
                 const th = document.createElement('th');
@@ -956,7 +1059,6 @@
                 thead.appendChild(th);
             });
 
-            // Populate body with days and shifts
             const daysOfWeek = ["Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
             tbody.innerHTML = '';
             daysOfWeek.forEach(day => {
@@ -966,7 +1068,7 @@
                 dayCell.style.fontWeight = 'bold';
                 tr.appendChild(dayCell);
 
-                employees.forEach(emp => {
+                employees.forEach((emp, index) => {
                     const shiftCell = document.createElement('td');
                     const input = document.createElement('input');
                     input.type = 'text';
@@ -1004,19 +1106,18 @@
             const year = document.getElementById('yearSelect').value;
 
             let printHTML = `
-                <div class="print-area">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h1>Weekly Staff Schedule</h1>
-                        <h2>${month} ${year} - Week ${weekNumber}</h2>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">Day</th>
-                                ${employees.map(emp => `<th style="border: 1px solid #ddd; padding: 8px;">${emp.name}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1>Weekly Staff Schedule</h1>
+                    <h2>${month} ${year} - Week ${weekNumber}</h2>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #ddd; padding: 8px;">Day</th>
+                            ${employees.map(emp => `<th style="border: 1px solid #ddd; padding: 8px;">${emp.name}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
             
             const daysOfWeek = ["Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
@@ -1030,32 +1131,142 @@
             });
 
             printHTML += `
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 30px;">
-                        <h3>📌 Agent Instructions</h3>
-                        <ul style="list-style-type: none; padding-left: 0;">
-                            <li>✔ Be ready 10 minutes before your shift.</li>
-                            <li>✔ Make sure you are logged into all systems (delivery + call center).</li>
-                            <li>✔ Breaks must be coordinated with the supervisor.</li>
-                            <li>✔ Report any late arrival directly to Ahmed.</li>
-                            <li>✔ End-of-shift report is mandatory.</li>
-                        </ul>
-                    </div>
+                    </tbody>
+                </table>
+                <div style="margin-top: 30px;">
+                    <h3>📌 Agent Instructions</h3>
+                    <ul style="list-style-type: none; padding-left: 0;">
+                        <li>✔ Be ready 10 minutes before your shift.</li>
+                        <li>✔ Make sure you are logged into all systems (delivery + call center).</li>
+                        <li>✔ Breaks must be coordinated with the supervisor.</li>
+                        <li>✔ Report any late arrival directly to Ahmed.</li>
+                        <li>✔ End-of-shift report is mandatory.</li>
+                    </ul>
                 </div>
             `;
             
-            const printArea = document.getElementById('printArea');
-            printArea.innerHTML = printHTML;
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = printHTML;
             window.print();
-            printArea.innerHTML = ''; // Clear after printing
+            document.body.innerHTML = originalContent;
+            setupEventListeners(); // Re-attach listeners after restoring DOM
         }
 
+        // --- Report Generation ---
         function generateMonthlyReport() {
-            // ... (keep existing report generation logic) ...
-            showNotification('Report generation feature is ready to be implemented.');
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthName = document.getElementById('monthSelect').options[month].text;
+            const startDate = `01/${month + 1}/${year}`;
+            const endDate = `${daysInMonth}/${month + 1}/${year}`;
+
+            let reportHTML = `
+                <div class="report-header">
+                    <h2>CALL CENTER</h2>
+                    <h3>Monthly Attendance & Absence Report</h3>
+                    <p>Month: ${monthName} ${year}</p>
+                    <p>Period: ${startDate} - ${endDate}</p>
+                </div>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Employee Name</th>
+                            <th>Total Workdays</th>
+                            <th>Present Days</th>
+                            <th>Absent Days</th>
+                            <th>Vacation Days</th>
+                            <th>Sick Leave</th>
+                            <th>Sick Cert.</th>
+                            <th>OFF DAYs</th>
+                            <th>Weekly Off Days</th>
+                            <th>Total Overtime Hours</th>
+                            <th>Overtime Days</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let grandTotals = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, cert: 0, offday: 0, weeklyoff: 0, otHours: 0, otDays: 0 };
+
+            employees.forEach((employee, index) => {
+                let counts = { workdays: 0, present: 0, absent: 0, vacation: 0, sick: 0, cert: 0, offday: 0, weeklyoff: 0, otHours: 0, otDays: 0 };
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dayOfWeek = date.getDay();
+                    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                    const weekOfMonth = Math.ceil(day / 7);
+                    
+                    if (!isWeekend) {
+                        const employeeWeeklyOffs = weeklyOffSchedule[employee.id];
+                        if (employeeWeeklyOffs && employeeWeeklyOffs[weekOfMonth - 1] === dayOfWeek) {
+                            counts.weeklyoff++;
+                        } else {
+                            counts.workdays++;
+                            const entry = attendanceData[employee.id][day];
+                            switch(entry.status) {
+                                case 'present':
+                                    counts.present++;
+                                    if (entry.hours > 9) { counts.otHours += (entry.hours - 9); counts.otDays++; }
+                                    break;
+                                case 'absent': counts.absent++; break;
+                                case 'vacation': counts.vacation++; break;
+                                case 'sick': 
+                                    counts.sick++; 
+                                    if (entry.certificate) counts.cert++;
+                                    break;
+                                case 'offday': counts.offday++; break;
+                            }
+                        }
+                    }
+                }
+                
+                for (let key in grandTotals) { grandTotals[key] += counts[key]; }
+
+                reportHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${employee.name}</td>
+                        <td>${counts.workdays}</td>
+                        <td>${counts.present}</td>
+                        <td>${counts.absent}</td>
+                        <td>${counts.vacation}</td>
+                        <td>${counts.sick}</td>
+                        <td>${counts.cert > 0 ? 'Yes' : 'No'}</td>
+                        <td>${counts.offday}</td>
+                        <td>${counts.weeklyoff}</td>
+                        <td>${counts.otHours.toFixed(1)}</td>
+                        <td>${counts.otDays}</td>
+                    </tr>
+                `;
+            });
+            
+            reportHTML += `
+                <tr class="total-row">
+                    <td><strong>Total</strong></td>
+                    <td></td>
+                    <td>${grandTotals.workdays}</td>
+                    <td>${grandTotals.present}</td>
+                    <td>${grandTotals.absent}</td>
+                    <td>${grandTotals.vacation}</td>
+                    <td>${grandTotals.sick}</td>
+                    <td>${grandTotals.cert > 0 ? 'Yes' : '-'}</td>
+                    <td>${grandTotals.offday}</td>
+                    <td>${grandTotals.weeklyoff}</td>
+                    <td>${grandTotals.otHours.toFixed(1)}</td>
+                    <td>${grandTotals.otDays}</td>
+                </tr>
+            </tbody>
+            </table>
+            `;
+
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            document.getElementById('reportModal').style.display = 'flex';
         }
 
+        // Notification
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
