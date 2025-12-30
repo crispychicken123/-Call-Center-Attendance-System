@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Call Center Attendance System</title>
+    <title>Employee Absence Schedule - December 2025</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -86,8 +86,13 @@
             font-weight: 500;
             transition: var(--transition);
         }
+        
+        .month-selector select:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
 
-        .month-selector select:hover {
+        .month-selector select:hover:not(:disabled) {
             border-color: var(--accent-color);
         }
 
@@ -279,7 +284,7 @@
         .status-absent { background-color: var(--absent-color); color: white; }
         .status-vacation { background-color: var(--vacation-color); color: var(--text-dark); }
         .status-sick { background-color: var(--sick-color); color: white; }
-        .status-offday { background-color: var(--offday-color); color: white; }
+        .status-offday { background-color: var(--offday-color); color: white; cursor: default; }
         .status-holiday { background-color: var(--holiday-color); color: white; cursor: default; }
         
         .status-sick.has-certificate::after {
@@ -524,27 +529,13 @@
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-users-cog"></i> Advanced Attendance System</h1>
+            <h1><i class="fas fa-users-cog"></i> Employee Absence Schedule</h1>
             <div class="month-selector">
-                <select id="monthSelect">
-                    <option value="0">January</option>
-                    <option value="1">February</option>
-                    <option value="2">March</option>
-                    <option value="3">April</option>
-                    <option value="4">May</option>
-                    <option value="5">June</option>
-                    <option value="6">July</option>
-                    <option value="7">August</option>
-                    <option value="8">September</option>
-                    <option value="9">October</option>
-                    <option value="10">November</option>
+                <select id="monthSelect" disabled>
                     <option value="11" selected>December</option>
                 </select>
-                <select id="yearSelect">
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
+                <select id="yearSelect" disabled>
                     <option value="2025" selected>2025</option>
-                    <option value="2026">2026</option>
                 </select>
             </div>
         </header>
@@ -556,7 +547,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>Present Today</h3>
-                    <p id="presentCount">0</p>
+                    <p id="presentCount">-</p>
                 </div>
             </div>
             <div class="stat-card absent">
@@ -565,7 +556,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>Absent Today</h3>
-                    <p id="absentCount">0</p>
+                    <p id="absentCount">-</p>
                 </div>
             </div>
             <div class="stat-card leave">
@@ -574,7 +565,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>On Leave Today</h3>
-                    <p id="leaveCount">0</p>
+                    <p id="leaveCount">-</p>
                 </div>
             </div>
             <div class="stat-card overtime">
@@ -583,7 +574,7 @@
                 </div>
                 <div class="stat-info">
                     <h3>Overtime Hrs Today</h3>
-                    <p id="overtimeHoursToday">0</p>
+                    <p id="overtimeHoursToday">-</p>
                 </div>
             </div>
         </div>
@@ -591,9 +582,6 @@
         <div class="actions">
             <button class="btn btn-primary" id="exportBtn">
                 <i class="fas fa-file-export"></i> Generate Monthly Report
-            </button>
-            <button class="btn btn-secondary" id="holidayBtn">
-                <i class="fas fa-calendar-day"></i> Manage Official Holidays
             </button>
             <button class="btn btn-secondary" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i> Refresh Data
@@ -611,23 +599,19 @@
             </div>
             <div class="legend-item">
                 <div class="legend-color status-absent"></div>
-                <span>Absent</span>
+                <span>Absent (0 hours)</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color status-vacation"></div>
-                <span>Vacation</span>
+                <span>Vacation (V)</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color status-sick"></div>
-                <span>Sick Leave</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color status-holiday"></div>
-                <span>Official Holiday</span>
+                <span>Sick Leave (S)</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color status-offday"></div>
-                <span>Weekend</span>
+                <span>OFF DAY (O)</span>
             </div>
         </div>
 
@@ -635,7 +619,7 @@
             <table id="attendanceTable">
                 <thead>
                     <tr>
-                        <th>Employee</th>
+                        <th>Employee name</th>
                         <!-- Calendar days will be generated here -->
                     </tr>
                 </thead>
@@ -670,6 +654,7 @@
                     <option value="absent">Absent</option>
                     <option value="vacation">Vacation</option>
                     <option value="sick">Sick Leave</option>
+                    <option value="offday">OFF DAY</option>
                 </select>
             </div>
             <div class="form-group">
@@ -689,33 +674,6 @@
                 <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
                 <button class="btn btn-primary" id="saveBtn">Save</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal for managing holidays -->
-    <div class="modal" id="holidayModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Manage Official Holidays</h2>
-                <button class="close-btn" id="closeHolidayModal">&times;</button>
-            </div>
-            <div class="form-group">
-                <label for="holidayDateSelect">Holiday Date</label>
-                <input type="date" id="holidayDateSelect">
-            </div>
-            <div class="form-group">
-                <label for="holidayNameInput">Holiday Name</label>
-                <input type="text" id="holidayNameInput" placeholder="e.g., National Day">
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-secondary" id="cancelHolidayBtn">Cancel</button>
-                <button class="btn btn-primary" id="addHolidayBtn">Add Holiday</button>
-            </div>
-            <hr style="margin: 20px 0;">
-            <h3>Official Holidays for this Month:</h3>
-            <ul class="holiday-list" id="holidayList">
-                <!-- Holidays will be listed here -->
-            </ul>
         </div>
     </div>
 
@@ -741,99 +699,102 @@
     <script>
         // Employee List
         const employees = [
-            { id: 1, name: "AHMED KENAWY" },
+            { id: 1, name: "HANA" },
             { id: 2, name: "manju ranabhat" },
             { id: 3, name: "NONA Rose" },
             { id: 4, name: "Melvin compendio" },
             { id: 5, name: "SALEH EMAD" },
             { id: 6, name: "Asmita Sapkota" },
-            { id: 7, name: "nirjala" },
-            { id: 8, name: "HANA" }
+            { id: 7, name: "AHMED KENAWY" },
+            { id: 8, name: "NIRJALA MAHRJAN" }
         ];
 
         // Data structures
         let attendanceData = {};
-        let officialHolidays = [];
+
+        // --- NEW: Data from the user's sheet ---
+        const userScheduleData = {
+            "HANA":               { 1: '0', 2: '0', 3: '0', 4: '9', 5: '9', 6: '9', 7: 'O', 8: '9', 9: '9', 10: '9', 11: '9', 12: '9', 13: '9', 14: 'O', 15: '9', 16: '9', 17: '9', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "manju ranabhat":     { 1: '9', 2: '9', 3: '9', 4: 'O', 5: '10', 6: '9', 7: '9', 8: '9', 9: '9', 10: '9', 11: 'O', 12: '9', 13: '9', 14: '9', 15: 'O', 16: '9', 17: '9', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "NONA Rose":          { 1: '9', 2: '9', 3: '9', 4: '9', 5: '9', 6: '9', 7: '9', 8: 'O', 9: '9', 10: '9', 11: '10', 12: '9', 13: '10', 14: '9', 15: '9', 16: '9', 17: '12', 18: 'O', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "Melvin compendio":   { 1: 'O', 2: '9', 3: '9', 4: '9', 5: '9', 6: '9', 7: 'O', 8: '9', 9: '9', 10: '9', 11: '9', 12: '9', 13: '9', 14: 'O', 15: '9', 16: '10', 17: '9', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "SALEH EMAD":         { 1: '9', 2: '9', 3: '9', 4: '9', 5: '10', 6: 'O', 7: '9', 8: '9', 9: '9', 10: '9', 11: '9', 12: '10', 13: 'O', 14: '9', 15: '9', 16: '11', 17: '10', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "Asmita Sapkota":     { 1: '9', 2: 'O', 3: '9', 4: '9', 5: 'O', 6: '10', 7: '9', 8: '9', 9: '9', 10: '9', 11: '9', 12: 'O', 13: '9', 14: '0', 15: '9', 16: 'S', 17: 'S', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "AHMED KENAWY":       { 1: '9', 2: '9', 3: '9', 4: '9', 5: '9', 6: '9', 7: 'O', 8: '9', 9: '9', 10: '9', 11: '9', 12: '9', 13: '9', 14: 'O', 15: '9', 16: '9', 17: '9', 18: '9', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' },
+            "NIRJALA MAHRJAN":    { 1: '9', 2: '9', 3: 'O', 4: '9', 5: '9', 6: '9', 7: '9', 8: '9', 9: '9', 10: 'O', 11: '9', 12: '9', 13: '9', 14: '9', 15: '9', 16: '9', 17: '9', 18: 'O', 19: '9', 20: '9', 21: '9', 22: '9', 23: '9', 24: '9', 25: '9', 26: '9', 27: '9', 28: '9', 29: '9', 30: '9' }
+        };
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            initializeAttendanceData();
+            initializeAttendanceDataFromSchedule();
             renderCalendar();
-            updateStats();
             setupEventListeners();
         });
 
-        // Initialize attendance data
-        function initializeAttendanceData() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
+        // --- UPDATED: Initialize attendance data from the user's schedule ---
+        function initializeAttendanceDataFromSchedule() {
+            attendanceData = {};
             employees.forEach(employee => {
-                if (!attendanceData[employee.id]) {
-                    attendanceData[employee.id] = {};
-                }
-                for (let day = 1; day <= daysInMonth; day++) {
-                    if (!attendanceData[employee.id][day]) {
-                        const date = new Date(year, month, day);
-                        const dayOfWeek = date.getDay();
+                attendanceData[employee.id] = {};
+                const employeeSchedule = userScheduleData[employee.name];
+                if (employeeSchedule) {
+                    for (let day = 1; day <= 31; day++) {
+                        const value = employeeSchedule[day];
                         let entry = { status: 'present', hours: 9, certificate: null };
                         
-                        if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend (Sunday, Saturday)
-                            entry = { status: 'offday', hours: 0, certificate: null };
+                        if (value) {
+                            const val = value.toString().toUpperCase();
+                            if (!isNaN(val)) {
+                                const hours = parseFloat(val);
+                                if (hours === 0) {
+                                    entry = { status: 'absent', hours: 0, certificate: null };
+                                } else {
+                                    entry = { status: 'present', hours: hours, certificate: null };
+                                }
+                            } else {
+                                switch (val) {
+                                    case 'O': entry = { status: 'offday', hours: 0, certificate: null }; break;
+                                    case 'S': entry = { status: 'sick', hours: 0, certificate: null }; break;
+                                    case 'V': entry = { status: 'vacation', hours: 0, certificate: null }; break;
+                                    case 'P': entry = { status: 'personal', hours: 0, certificate: null }; break;
+                                    default: entry = { status: 'present', hours: 9, certificate: null }; break; // Default to present
+                                }
+                            }
                         }
                         attendanceData[employee.id][day] = entry;
                     }
                 }
             });
-            // Load holidays for the current month
-            loadHolidaysForMonth(month, year);
-        }
-        
-        // Holiday Management
-        function loadHolidaysForMonth(month, year) {
-            officialHolidays = []; // Clear previous holidays
-            // Example: Add a holiday for demonstration
-            if (month === 11 && year === 2025) { // December 2025
-                 officialHolidays.push({ date: '2025-12-16', name: 'National Day' });
-            }
-        }
-        
-        function isHoliday(year, month, day) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            return officialHolidays.some(h => h.date === dateStr);
         }
 
         // Render calendar
         function renderCalendar() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const month = 11; // December
+            const year = 2025;
+            const daysInMonth = 31;
             
             const table = document.getElementById('attendanceTable');
             const thead = table.querySelector('thead tr');
             const tbody = table.querySelector('tbody');
             
-            thead.innerHTML = '<th>Employee</th>';
+            thead.innerHTML = '<th>Employee name</th>';
             tbody.innerHTML = '';
             
             // Add day headers
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
                 const dayOfWeek = date.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                const isHoliday = isHoliday(year, month, day);
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sun, Sat
                 
                 const th = document.createElement('th');
                 th.textContent = day;
-                th.className = `day-header ${isWeekend ? 'weekend' : ''} ${isHoliday ? 'is-holiday' : ''}`;
-                th.title = isHoliday ? officialHolidays.find(h => h.date === `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`).name : '';
+                th.className = `day-header ${isWeekend ? 'weekend' : ''}`;
                 thead.appendChild(th);
             }
             
             // Add total column header
             const totalHeader = document.createElement('th');
-            totalHeader.textContent = 'Total Overtime Hours';
+            totalHeader.textContent = 'Total days';
             totalHeader.className = 'total-header';
             thead.appendChild(totalHeader);
             
@@ -844,40 +805,32 @@
                 nameCell.textContent = employee.name;
                 tr.appendChild(nameCell);
                 
-                let totalOvertimeHours = 0;
+                let totalDaysWorked = 0;
                 for (let day = 1; day <= daysInMonth; day++) {
                     const td = document.createElement('td');
                     td.className = 'status-cell';
                     
                     const entry = attendanceData[employee.id][day];
-                    const isHoliday = isHoliday(year, month, day);
                     
-                    if (isHoliday) {
-                        td.classList.add('status-holiday');
-                        td.textContent = 'Holiday';
+                    td.classList.add(`status-${entry.status}`);
+                    
+                    if (entry.status === 'present' || entry.status === 'overtime') {
+                        td.textContent = entry.hours;
+                        totalDaysWorked++;
+                    } else if (entry.status === 'absent') {
+                        td.textContent = '0';
                     } else {
-                        td.classList.add(`status-${entry.status}`);
-                        if (entry.status === 'present' || entry.status === 'overtime') {
-                            td.textContent = entry.hours;
-                            if (entry.hours > 9) {
-                                totalOvertimeHours += (entry.hours - 9);
-                            }
-                        }
-                        if (entry.status === 'sick' && entry.certificate) {
-                            td.classList.add('has-certificate');
-                        }
+                        td.textContent = entry.status.charAt(0).toUpperCase(); // O, S, V, P
                     }
                     
                     td.addEventListener('click', function() {
-                        if (!isHoliday) {
-                            openAttendanceModal(employee.id, day, entry);
-                        }
+                        openAttendanceModal(employee.id, day, entry);
                     });
                     tr.appendChild(td);
                 }
                 
                 const totalCell = document.createElement('td');
-                totalCell.textContent = totalOvertimeHours.toFixed(1);
+                totalCell.textContent = totalDaysWorked;
                 totalCell.className = 'total-cell';
                 tr.appendChild(totalCell);
                 
@@ -885,57 +838,12 @@
             });
         }
 
-        // Update statistics
-        function updateStats() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const today = new Date();
-            
-            if (month === today.getMonth() && year === today.getFullYear()) {
-                const day = today.getDate();
-                const isTodayHoliday = isHoliday(year, month, day);
-                
-                let presentCount = 0, absentCount = 0, leaveCount = 0, overtimeHours = 0;
-                
-                employees.forEach(employee => {
-                    const entry = attendanceData[employee.id][day];
-                    switch(entry.status) {
-                        case 'present': 
-                            presentCount++; 
-                            if (entry.hours > 9) overtimeHours += (entry.hours - 9);
-                            break;
-                        case 'absent': absentCount++; break;
-                        case 'vacation':
-                        case 'sick': leaveCount++; break;
-                    }
-                });
-                
-                document.getElementById('presentCount').textContent = presentCount;
-                document.getElementById('absentCount').textContent = absentCount;
-                document.getElementById('leaveCount').textContent = leaveCount;
-                document.getElementById('overtimeHoursToday').textContent = overtimeHours.toFixed(1);
-            } else {
-                 document.getElementById('presentCount').textContent = '-';
-                 document.getElementById('absentCount').textContent = '-';
-                 document.getElementById('leaveCount').textContent = '-';
-                 document.getElementById('overtimeHoursToday').textContent = '-';
-            }
-        }
-
         // Setup event listeners
         function setupEventListeners() {
-            // Month and year selectors
-            document.getElementById('monthSelect').addEventListener('change', () => { initializeAttendanceData(); renderCalendar(); updateStats(); });
-            document.getElementById('yearSelect').addEventListener('change', () => { initializeAttendanceData(); renderCalendar(); updateStats(); });
-            
             // Modal controls
             document.getElementById('closeModal').addEventListener('click', closeAttendanceModal);
             document.getElementById('cancelBtn').addEventListener('click', closeAttendanceModal);
             document.getElementById('saveBtn').addEventListener('click', saveAttendance);
-            
-            document.getElementById('closeHolidayModal').addEventListener('click', closeHolidayModal);
-            document.getElementById('cancelHolidayBtn').addEventListener('click', closeHolidayModal);
-            document.getElementById('addHolidayBtn').addEventListener('click', addHoliday);
             
             document.getElementById('closeReportModal').addEventListener('click', closeReportModal);
             document.getElementById('printReportBtn').addEventListener('click', () => window.print());
@@ -964,11 +872,9 @@
             
             // Button actions
             document.getElementById('exportBtn').addEventListener('click', generateMonthlyReport);
-            document.getElementById('holidayBtn').addEventListener('click', openHolidayModal);
             document.getElementById('refreshBtn').addEventListener('click', () => {
-                initializeAttendanceData();
+                initializeAttendanceDataFromSchedule();
                 renderCalendar();
-                updateStats();
                 showNotification('Data refreshed successfully!');
             });
             
@@ -991,8 +897,8 @@
             
             employeeSelect.innerHTML = employees.map(e => `<option value="${e.id}" ${e.id === employeeId ? 'selected' : ''}>${e.name}</option>`).join('');
             
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
+            const month = 11; // December
+            const year = 2025;
             const date = new Date(year, month, day);
             dateSelect.value = date.toISOString().split('T')[0];
             
@@ -1026,64 +932,16 @@
             attendanceData[employeeId][day] = { status, hours, certificate };
             
             renderCalendar();
-            updateStats();
             closeAttendanceModal();
             showNotification('Attendance updated successfully!');
         }
 
-        function openHolidayModal() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            document.getElementById('holidayDateSelect').min = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-            document.getElementById('holidayDateSelect').max = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
-            renderHolidayList();
-            document.getElementById('holidayModal').style.display = 'flex';
-        }
-
-        function closeHolidayModal() { document.getElementById('holidayModal').style.display = 'none'; }
-        
-        function addHoliday() {
-            const date = document.getElementById('holidayDateSelect').value;
-            const name = document.getElementById('holidayNameInput').value;
-            if (date && name) {
-                if (!officialHolidays.some(h => h.date === date)) {
-                    officialHolidays.push({ date, name });
-                    renderHolidayList();
-                    renderCalendar();
-                    document.getElementById('holidayDateSelect').value = '';
-                    document.getElementById('holidayNameInput').value = '';
-                    showNotification('Official holiday added successfully!');
-                } else {
-                    showNotification('This date already exists!', 'error');
-                }
-            } else {
-                showNotification('Please fill in all fields!', 'error');
-            }
-        }
-        
-        function renderHolidayList() {
-            const list = document.getElementById('holidayList');
-            list.innerHTML = officialHolidays.map(h => `
-                <li>
-                    <span>${h.date} - ${h.name}</span>
-                    <button onclick="removeHoliday('${h.date}')"><i class="fas fa-trash"></i></button>
-                </li>
-            `).join('');
-        }
-        
-        function removeHoliday(dateToRemove) {
-            officialHolidays = officialHolidays.filter(h => h.date !== dateToRemove);
-            renderHolidayList();
-            renderCalendar();
-            showNotification('Official holiday removed.');
-        }
-
         // Report Generation
         function generateMonthlyReport() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const monthName = document.getElementById('monthSelect').options[month].text;
+            const month = 11; // December
+            const year = 2025;
+            const daysInMonth = 31;
+            const monthName = "December";
             const startDate = `01/${month + 1}/${year}`;
             const endDate = `${daysInMonth}/${month + 1}/${year}`;
 
@@ -1121,22 +979,18 @@
                     const date = new Date(year, month, day);
                     const dayOfWeek = date.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                    const isHoliday = isHoliday(year, month, day);
                     
                     if (!isWeekend) {
                         const entry = attendanceData[employee.id][day];
-                        if (isHoliday) {
-                            counts.holiday++;
-                        } else {
-                            switch(entry.status) {
-                                case 'present':
-                                    counts.working++;
-                                    if (entry.hours > 9) { counts.otHours += (entry.hours - 9); counts.otDays++; }
-                                    break;
-                                case 'absent': counts.absent++; break;
-                                case 'vacation': counts.vacation++; break;
-                                case 'sick': counts.sick++; break;
-                            }
+                        switch(entry.status) {
+                            case 'present':
+                                counts.working++;
+                                if (entry.hours > 9) { counts.otHours += (entry.hours - 9); counts.otDays++; }
+                                break;
+                            case 'absent': counts.absent++; break;
+                            case 'vacation': counts.vacation++; break;
+                            case 'sick': counts.sick++; break;
+                            case 'offday': counts.holiday++; break;
                         }
                     }
                 }
