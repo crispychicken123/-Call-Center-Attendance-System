@@ -7,6 +7,8 @@
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Excel Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -49,7 +51,7 @@
             transition: var(--transition);
         }
 
-        /* Enhanced Loading Spinner */
+        /* Loading Spinner */
         .spinner {
             position: fixed;
             top: 50%;
@@ -72,8 +74,17 @@
         /* Print Styles */
         @media print {
             body * { visibility: hidden; height: auto; overflow: visible; display: none !important; }
-            #printEmployeeArea, .table-wrapper, .table-wrapper * { visibility: visible !important; display: block !important; }
-            #printEmployeeArea { position: absolute; left: 0; top: 0; width: 100%; z-index: 9999; background: white; padding: 40px; color: black; }
+            #printArea, #printArea * { visibility: visible !important; display: block !important; }
+            #printArea { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                z-index: 9999; 
+                background: white; 
+                padding: 40px; 
+                color: black;
+            }
             .table-wrapper { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; margin-top: 0; }
             th, td { border: 1px solid #000 !important; color: black !important; }
             .no-print { display: none !important; }
@@ -663,7 +674,7 @@
             border-left-color: var(--secondary); 
         }
 
-        /* Enhanced Charts Container */
+        /* Charts Container */
         .charts-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -727,36 +738,76 @@
             }
         }
 
-        /* Loading Animation */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
+        /* Print Area Styles */
+        #printArea {
+            position: absolute;
             left: 0;
+            top: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            background: white;
+            padding: 40px;
+            color: black;
+            display: none;
         }
-        
-        .loading-content {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 12px;
+
+        #printArea * {
+            visibility: visible !important;
+            display: block !important;
+        }
+
+        #printArea .no-print,
+        #printArea .btn,
+        #printArea .modal,
+        #printArea .toolbar,
+        #printArea .tabs,
+        #printArea .search-wrapper,
+        #printArea .actions {
+            display: none !important;
+        }
+
+        #printArea table {
+            width: 100% !important;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #printArea th, #printArea td {
+            border: 1px solid #000 !important;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #printArea h1, #printArea h2, #printArea h3 {
+            color: #000;
+        }
+
+        #printArea .arabic-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
             text-align: center;
-            box-shadow: var(--shadow-lg);
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border: 1px solid #eee;
         }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+
+        #printArea .summary-table {
+            background: white;
+            border: 1px solid #000;
+            width: 100%;
+        }
+
+        #printArea .summary-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        #printArea .summary-table td {
+            border: 1px solid #000;
+            padding: 10px;
         }
     </style>
 </head>
@@ -878,7 +929,7 @@
                     </div>
                     <div style="flex:1;"></div>
                     <div class="actions">
-                        <button class="btn btn-secondary" onclick="window.print()">
+                        <button class="btn btn-secondary" onclick="app.printContent()">
                             <i class="fas fa-print"></i> Print Schedule
                         </button>
                     </div>
@@ -957,7 +1008,10 @@
                         <button class="btn btn-info" onclick="app.exportToExcel()">
                             <i class="fas fa-file-excel"></i> Export Excel
                         </button>
-                        <button class="btn btn-secondary" onclick="window.print()">
+                        <button class="btn btn-secondary" onclick="app.exportToCSV()">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="app.printContent()">
                             <i class="fas fa-print"></i> Print / PDF
                         </button>
                     </div>
@@ -1427,6 +1481,371 @@
                 }, 500);
             },
             
+            // --- Print Functionality ---
+            printContent() {
+                this.showLoading();
+                
+                // Create a temporary print area
+                const printArea = document.createElement('div');
+                printArea.id = 'printArea';
+                printArea.style.position = 'absolute';
+                printArea.style.left = '0';
+                printArea.style.top = '0';
+                printArea.style.width = '100%';
+                printArea.style.zIndex = '9999';
+                printArea.style.background = 'white';
+                printArea.style.padding = '40px';
+                printArea.style.color = 'black';
+                printArea.style.display = 'block';
+                
+                // Clone the current view content
+                const activeView = document.querySelector('.view-section.active');
+                const clonedContent = activeView.cloneNode(true);
+                
+                // Remove non-printable elements
+                clonedContent.querySelectorAll('.no-print, .btn, .modal, .toolbar, .tabs, .search-wrapper, .actions').forEach(el => el.remove());
+                
+                // Apply print-specific styles
+                clonedContent.querySelectorAll('table').forEach(table => {
+                    table.style.width = '100%';
+                    table.style.borderCollapse = 'collapse';
+                    table.style.border = '1px solid #000';
+                });
+                
+                clonedContent.querySelectorAll('th, td').forEach(cell => {
+                    cell.style.border = '1px solid #000';
+                    cell.style.padding = '8px';
+                    cell.style.textAlign = 'left';
+                });
+                
+                // Add header
+                const header = document.createElement('div');
+                header.style.textAlign = 'center';
+                header.style.marginBottom = '30px';
+                header.innerHTML = `
+                    <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">HR Master v5.8 - ${document.title}</h1>
+                    <p style="font-size: 14px; color: #666;">Printed on: ${new Date().toLocaleString()}</p>
+                `;
+                
+                // Add footer
+                const footer = document.createElement('div');
+                footer.style.position = 'fixed';
+                footer.style.bottom = '0';
+                footer.style.left = '0';
+                footer.style.width = '100%';
+                footer.style.textAlign = 'center';
+                footer.style.padding = '10px';
+                footer.style.borderTop = '1px solid #000';
+                footer.style.fontSize = '12px';
+                footer.innerHTML = 'HR Master v5.8 - Confidential Document';
+                
+                // Assemble print content
+                printArea.appendChild(header);
+                printArea.appendChild(clonedContent);
+                printArea.appendChild(footer);
+                
+                // Add to body
+                document.body.appendChild(printArea);
+                
+                // Wait for content to render, then print
+                setTimeout(() => {
+                    window.print();
+                    
+                    // Clean up after print
+                    setTimeout(() => {
+                        document.body.removeChild(printArea);
+                        this.hideLoading();
+                    }, 500);
+                }, 500);
+            },
+            
+            // --- Excel Export Functionality ---
+            exportToExcel() {
+                // Check if XLSX library is loaded
+                if (typeof XLSX === 'undefined') {
+                    this.showToast('Excel library not loaded. Exporting as CSV instead.', 'warning');
+                    this.exportToCSV();
+                    return;
+                }
+                
+                this.showLoading();
+                
+                try {
+                    // Create workbook and worksheet
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Create data array
+                    const wsData = [];
+                    
+                    // Add headers
+                    wsData.push([
+                        'Employee Name',
+                        'Job Number',
+                        'Working Days',
+                        'Absent Days',
+                        'Vacation Days',
+                        'Sick Days',
+                        'Total Days',
+                        'Overtime Hours',
+                        'Overtime Days',
+                        'Total Overtime'
+                    ]);
+                    
+                    // Calculate summary data
+                    const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
+                    const summaryData = this.data.employees.map(emp => {
+                        let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0;
+                        let overtimeHours = 0, overtimeDays = 0;
+                        
+                        for (let i = 1; i <= daysInMonth; i++) {
+                            const att = this.getAttendance(emp.id, i);
+                            if (att) {
+                                if (att.status === 'present' || att.status === 'overtime') {
+                                    workingDays++;
+                                    if (att.hours > 9) {
+                                        overtimeHours += (att.hours - 9);
+                                        overtimeDays++;
+                                    }
+                                } else if (att.status === 'absent') {
+                                    absentDays++;
+                                } else if (att.status === 'vacation') {
+                                    vacationDays++;
+                                } else if (att.status === 'sick') {
+                                    sickDays++;
+                                }
+                            } else {
+                                workingDays++;
+                            }
+                        }
+                        
+                        const totalDays = workingDays + absentDays + vacationDays + sickDays;
+                        return [
+                            emp.name,
+                            emp.jobNumber || '',
+                            workingDays,
+                            absentDays,
+                            vacationDays,
+                            sickDays,
+                            totalDays,
+                            overtimeHours,
+                            overtimeDays,
+                            overtimeHours
+                        ];
+                    });
+                    
+                    // Add data rows
+                    wsData.push(...summaryData);
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+                    
+                    // Set column widths
+                    ws['!cols'] = [
+                        { wch: 20 }, // Employee Name
+                        { wch: 15 }, // Job Number
+                        { wch: 12 }, // Working Days
+                        { wch: 12 }, // Absent Days
+                        { wch: 12 }, // Vacation Days
+                        { wch: 10 }, // Sick Days
+                        { wch: 10 }, // Total Days
+                        { wch: 15 }, // Overtime Hours
+                        { wch: 12 }, // Overtime Days
+                        { wch: 15 }  // Total Overtime
+                    ];
+                    
+                    // Add worksheet to workbook
+                    XLSX.utils.book_append_sheet(wb, ws, 'Monthly Summary');
+                    
+                    // Generate Excel file
+                    const fileName = `HR_Summary_${this.data.currentYear}_${this.data.currentMonth + 1}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    this.showToast('Excel file exported successfully', 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showToast('Error exporting Excel file', 'error');
+                } finally {
+                    this.hideLoading();
+                }
+            },
+            
+            // --- CSV Export Functionality ---
+            exportToCSV() {
+                this.showLoading();
+                
+                try {
+                    // Create CSV content
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    
+                    // Add headers
+                    csvContent += "Employee Name,Job Number,Working Days,Absent Days,Vacation Days,Sick Days,Total Days,Overtime Hours,Overtime Days,Total Overtime\n";
+                    
+                    // Calculate summary data
+                    const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
+                    const summaryData = this.data.employees.map(emp => {
+                        let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0;
+                        let overtimeHours = 0, overtimeDays = 0;
+                        
+                        for (let i = 1; i <= daysInMonth; i++) {
+                            const att = this.getAttendance(emp.id, i);
+                            if (att) {
+                                if (att.status === 'present' || att.status === 'overtime') {
+                                    workingDays++;
+                                    if (att.hours > 9) {
+                                        overtimeHours += (att.hours - 9);
+                                        overtimeDays++;
+                                    }
+                                } else if (att.status === 'absent') {
+                                    absentDays++;
+                                } else if (att.status === 'vacation') {
+                                    vacationDays++;
+                                } else if (att.status === 'sick') {
+                                    sickDays++;
+                                }
+                            } else {
+                                workingDays++;
+                            }
+                        }
+                        
+                        const totalDays = workingDays + absentDays + vacationDays + sickDays;
+                        return [
+                            `"${emp.name}"`,
+                            `"${emp.jobNumber || ''}"`,
+                            workingDays,
+                            absentDays,
+                            vacationDays,
+                            sickDays,
+                            totalDays,
+                            overtimeHours,
+                            overtimeDays,
+                            overtimeHours
+                        ].join(',');
+                    });
+                    
+                    // Add data rows
+                    csvContent += summaryData.join('\n');
+                    
+                    // Create download link
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `HR_Summary_${this.data.currentYear}_${this.data.currentMonth + 1}.csv`);
+                    document.body.appendChild(link);
+                    
+                    // Trigger download
+                    link.click();
+                    
+                    // Clean up
+                    document.body.removeChild(link);
+                    
+                    this.showToast('CSV file exported successfully (open in Excel)', 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showToast('Error exporting file', 'error');
+                } finally {
+                    this.hideLoading();
+                }
+            },
+            
+            // --- Employee Profile Print ---
+            printEmployeeProfile() {
+                const id = document.getElementById('editEmpId').value;
+                if(!id) { 
+                    this.showToast('Save employee first', 'error'); 
+                    return; 
+                }
+                
+                const emp = this.data.employees.find(e => e.id == id);
+                if(!emp) { 
+                    this.showToast('Employee not found', 'error'); 
+                    return; 
+                }
+                
+                // Create print area
+                const printArea = document.createElement('div');
+                printArea.id = 'printEmployeeArea';
+                printArea.style.position = 'absolute';
+                printArea.style.left = '0';
+                printArea.style.top = '0';
+                printArea.style.width = '100%';
+                printArea.style.zIndex = '9999';
+                printArea.style.background = 'white';
+                printArea.style.padding = '40px';
+                printArea.style.color = 'black';
+                printArea.style.display = 'block';
+                
+                // Create print content
+                printArea.innerHTML = `
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px;">
+                            <h1 style="font-size: 28px; font-weight: 700; color: #333; margin-bottom: 10px;">EMPLOYEE PROFILE</h1>
+                            <p style="font-size: 14px; color: #666;">Report Date: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 40px; margin-bottom: 30px;">
+                            <div style="flex: 0 0 180px; text-align: center;">
+                                <img src="${emp.photo || 'https://via.placeholder.com/150'}" 
+                                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; margin-bottom: 15px;">
+                            </div>
+                            
+                            <div style="flex: 1;">
+                                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #333;">${emp.name}</h2>
+                                <p style="font-size: 16px; margin-bottom: 10px;"><strong>Employee ID:</strong> ${emp.jobNumber || 'N/A'}</p>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #555;">Contact Information</h3>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Phone:</strong> ${emp.phone || 'N/A'}</p>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Nationality:</strong> ${emp.nationality || 'N/A'}</p>
+                                </div>
+                                
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #555;">Documents</h3>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Passport:</strong> ${emp.passportNo || 'N/A'} ${emp.passportExp ? `(Expires: ${new Date(emp.passportExp).toLocaleDateString()})` : ''}</p>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>EID:</strong> ${emp.eidNo || 'N/A'} ${emp.eidExp ? `(Expires: ${new Date(emp.eidExp).toLocaleDateString()})` : ''}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #555;">Employment Details</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Join Date:</strong> ${emp.joinDate ? new Date(emp.joinDate).toLocaleDateString() : 'N/A'}</p>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Weekly Off:</strong> ${this.getWeekdayName(parseInt(emp.weeklyOff))}</p>
+                                </div>
+                                <div>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Passport Expiry:</strong> ${emp.passportExp ? new Date(emp.passportExp).toLocaleDateString() : 'N/A'}</p>
+                                    <p style="font-size: 14px; margin-bottom: 5px;"><strong>EID Expiry:</strong> ${emp.eidExp ? new Date(emp.eidExp).toLocaleDateString() : 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #888;">
+                            HR Master v5.8 - Confidential Document | Printed on ${new Date().toLocaleString()}
+                        </div>
+                    </div>
+                `;
+                
+                // Add to body
+                document.body.appendChild(printArea);
+                
+                // Wait for content to render, then print
+                setTimeout(() => {
+                    window.print();
+                    
+                    // Clean up after print
+                    setTimeout(() => {
+                        document.body.removeChild(printArea);
+                    }, 500);
+                }, 500);
+            },
+            
+            // Helper function to get weekday name
+            getWeekdayName(dayIndex) {
+                const days = ['None', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                return days[parseInt(dayIndex) + 1] || 'None';
+            },
+            
             // --- View Switcher ---
             switchTab(tab) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1740,86 +2159,6 @@
                 });
             },
             
-            // Excel Export
-            exportToExcel() {
-                this.showLoading();
-                
-                // Create workbook and worksheet
-                const wb = XLSX.utils.book_new();
-                const wsData = [];
-                
-                // Add headers
-                wsData.push([
-                    'Employee Name',
-                    'Job Number',
-                    'Working Days',
-                    'Absent Days',
-                    'Vacation Days',
-                    'Sick Days',
-                    'Total Days',
-                    'Overtime Hours',
-                    'Overtime Days',
-                    'Total Overtime'
-                ]);
-                
-                // Calculate summary data
-                const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
-                const summaryData = this.data.employees.map(emp => {
-                    let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0;
-                    let overtimeHours = 0, overtimeDays = 0;
-                    
-                    for (let i = 1; i <= daysInMonth; i++) {
-                        const att = this.getAttendance(emp.id, i);
-                        if (att) {
-                            if (att.status === 'present' || att.status === 'overtime') {
-                                workingDays++;
-                                if (att.hours > 9) {
-                                    overtimeHours += (att.hours - 9);
-                                    overtimeDays++;
-                                }
-                            } else if (att.status === 'absent') {
-                                absentDays++;
-                            } else if (att.status === 'vacation') {
-                                vacationDays++;
-                            } else if (att.status === 'sick') {
-                                sickDays++;
-                            }
-                        } else {
-                            workingDays++;
-                        }
-                    }
-                    
-                    const totalDays = workingDays + absentDays + vacationDays + sickDays;
-                    return [
-                        emp.name,
-                        emp.jobNumber || '',
-                        workingDays,
-                        absentDays,
-                        vacationDays,
-                        sickDays,
-                        totalDays,
-                        overtimeHours,
-                        overtimeDays,
-                        overtimeHours
-                    ];
-                });
-                
-                // Add data rows
-                wsData.push(...summaryData);
-                
-                // Create worksheet
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                
-                // Add worksheet to workbook
-                XLSX.utils.book_append_sheet(wb, ws, 'Monthly Summary');
-                
-                // Generate Excel file
-                XLSX.writeFile(wb, `HR_Summary_${this.data.currentYear}_${this.data.currentMonth + 1}.xlsx`);
-                
-                this.hideLoading();
-                this.showToast('Excel file exported successfully', 'success');
-            },
-            
             // --- Employee Management ---
             openEmployeeModal(id = null) {
                 this.showLoading();
@@ -1968,55 +2307,6 @@
                     this.showToast('Deleted', 'success');
                     this.hideLoading();
                 }
-            },
-            
-            printEmployeeProfile() {
-                const id = document.getElementById('editEmpId').value;
-                if(!id) { this.showToast('Save employee first', 'error'); return; }
-                const emp = this.data.employees.find(e => e.id == id);
-                if(!emp) { this.showToast('Employee not found', 'error'); return; }
-                
-                const printArea = document.getElementById('printEmployeeArea');
-                printArea.style.display = 'block';
-                
-                printArea.innerHTML = `
-                    <div class="print-header">
-                        <div style="font-size: 24px; font-weight: 700; color: #333;">EMPLOYEE PROFILE</div>
-                        <div>Date: ${new Date().toLocaleDateString()}</div>
-                    </div>
-                    <div class="print-grid">
-                        <div>
-                            <img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo">
-                        </div>
-                        <div>
-                            <h2>${emp.name}</h2>
-                            <p><strong>ID:</strong> ${emp.jobNumber}</p>
-                            <div class="print-section">
-                                <div class="print-row">
-                                    <span class="print-label">Phone:</span>${emp.phone||'-'}
-                                </div>
-                                <div class="print-row">
-                                    <span class="print-label">Nationality:</span>${emp.nationality||'-'}
-                                </div>
-                            </div>
-                            <div class="print-section">
-                                <h4>Documents</h4>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                                    <div class="print-row">
-                                        <span class="print-label">Passport:</span>${emp.passportNo||'-'} (${emp.passportExp||'-'})
-                                    </div>
-                                    <div class="print-row">
-                                        <span class="print-label">EID:</span>${emp.eidNo||'-'} (${emp.eidExp||'-'})
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(() => {
-                    window.print();
-                    printArea.style.display = 'none';
-                }, 500);
             },
             
             // --- Toast Notification System ---
