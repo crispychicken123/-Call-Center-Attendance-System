@@ -1334,7 +1334,7 @@
                     <div style="grid-column: span 2; text-align: center; margin-bottom: 20px;">
                         <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;" data-i18n="hdr_personal_info">Personal Information</label>
                     </div>
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_name">Full Name</label><input type="text" id="empName" class="form-input"></div>
+                    <div class="form-group"><label class="form-label required" data-i18n="lbl_name">Full Name</label><input type="text" id="empName" class="form-input"></div>
                     <div class="form-group"><label class="form-label" data-i18n="lbl_job_no">Job Number</label><input type="text" id="empJobNumber" class="form-input"></div>
                     <div class="form-group"><label class="form-label" data-i18n="lbl_phone">Phone</label><input type="tel" id="empPhone" class="form-input"></div>
                     <div class="form-group"><label class="form-label" data-i18n="lbl_nat">Nationality</label><input type="text" id="empNationality" class="form-input"></div>
@@ -2045,7 +2045,14 @@
                     btn_approve: "Approve",
                     btn_reject: "Reject",
                     lbl_days: "Days",
-                    lbl_off: "Off"
+                    lbl_off: "Off",
+                    day_sun: "Sunday",
+                    day_mon: "Monday",
+                    day_tue: "Tuesday",
+                    day_wed: "Wednesday",
+                    day_thu: "Thursday",
+                    day_fri: "Friday",
+                    day_sat: "Saturday"
                 },
                 ar: {
                     tab_attendance: "سجل الحضور",
@@ -2159,7 +2166,14 @@
                     btn_approve: "موافقة",
                     btn_reject: "رفض",
                     lbl_days: "أيام",
-                    lbl_off: "إجازة"
+                    lbl_off: "إجازة",
+                    day_sun: "الأحد",
+                    day_mon: "الإثنين",
+                    day_tue: "الثلاثاء",
+                    day_wed: "الأربعاء",
+                    day_thu: "الخميس",
+                    day_fri: "الجمعة",
+                    day_sat: "السبت"
                 }
             }
         };
@@ -2309,6 +2323,154 @@
                     }
                     if (e.key === 'Escape' && document.querySelector('.modal.active')) app.closeModals();
                 });
+            },
+            
+            // --- EMPLOYEE MANAGEMENT FUNCTIONS ---
+            openEmployeeModal(empId = null) {
+                const modal = document.getElementById('employeeModal');
+                const isEdit = empId !== null;
+                
+                // Reset form
+                document.getElementById('empName').value = '';
+                document.getElementById('empJobNumber').value = '';
+                document.getElementById('empPhone').value = '';
+                document.getElementById('empNationality').value = '';
+                document.getElementById('empPassportNo').value = '';
+                document.getElementById('empPassportExp').value = '';
+                document.getElementById('empEIDNo').value = '';
+                document.getElementById('empEIDExp').value = '';
+                document.getElementById('empJoinDate').value = '';
+                document.getElementById('empWeeklyOff').value = '-1';
+                document.getElementById('empLaborCard').value = '';
+                document.getElementById('empInsuranceExp').value = '';
+                document.getElementById('empPhotoBase64').value = '';
+                document.getElementById('empPhotoPreview').src = 'https://via.placeholder.com/80';
+                document.getElementById('editEmpId').value = '';
+                
+                // Hide delete button for new employee
+                document.getElementById('deleteEmpBtn').style.display = isEdit ? 'block' : 'none';
+                
+                if (isEdit) {
+                    const emp = this.data.employees.find(e => e.id === empId);
+                    if (emp) {
+                        document.getElementById('empName').value = emp.name || '';
+                        document.getElementById('empJobNumber').value = emp.jobNumber || '';
+                        document.getElementById('empPhone').value = emp.phone || '';
+                        document.getElementById('empNationality').value = emp.nationality || '';
+                        document.getElementById('empPassportNo').value = emp.passportNo || '';
+                        document.getElementById('empPassportExp').value = emp.passportExp || '';
+                        document.getElementById('empEIDNo').value = emp.eidNo || '';
+                        document.getElementById('empEIDExp').value = emp.eidExp || '';
+                        document.getElementById('empJoinDate').value = emp.joinDate || '';
+                        document.getElementById('empWeeklyOff').value = emp.weeklyOff || '-1';
+                        document.getElementById('empLaborCard').value = emp.laborCard || '';
+                        document.getElementById('empInsuranceExp').value = emp.insuranceExp || '';
+                        document.getElementById('empPhotoBase64').value = emp.photo || '';
+                        document.getElementById('empPhotoPreview').src = emp.photo || 'https://via.placeholder.com/80';
+                        document.getElementById('editEmpId').value = empId;
+                    }
+                }
+                
+                modal.classList.add('active');
+                Logger.log('info', `Employee modal opened for ${isEdit ? 'edit' : 'add'}`, 'EmployeeManager');
+            },
+            
+            saveEmployee() {
+                const name = document.getElementById('empName').value.trim();
+                const jobNumber = document.getElementById('empJobNumber').value.trim();
+                const phone = document.getElementById('empPhone').value.trim();
+                const nationality = document.getElementById('empNationality').value.trim();
+                const passportNo = document.getElementById('empPassportNo').value.trim();
+                const passportExp = document.getElementById('empPassportExp').value;
+                const eidNo = document.getElementById('empEIDNo').value.trim();
+                const eidExp = document.getElementById('empEIDExp').value;
+                const joinDate = document.getElementById('empJoinDate').value;
+                const weeklyOff = document.getElementById('empWeeklyOff').value;
+                const laborCard = document.getElementById('empLaborCard').value.trim();
+                const insuranceExp = document.getElementById('empInsuranceExp').value;
+                const photo = document.getElementById('empPhotoBase64').value;
+                const editId = document.getElementById('editEmpId').value;
+                
+                // Validation
+                if (!name) {
+                    this.showToast('Name is required', 'error');
+                    return;
+                }
+                
+                const empData = {
+                    name,
+                    jobNumber,
+                    phone,
+                    nationality,
+                    passportNo,
+                    passportExp,
+                    eidNo,
+                    eidExp,
+                    joinDate,
+                    weeklyOff,
+                    laborCard,
+                    insuranceExp,
+                    photo
+                };
+                
+                if (editId) {
+                    // Update existing employee
+                    const index = this.data.employees.findIndex(e => e.id === parseInt(editId));
+                    if (index !== -1) {
+                        this.data.employees[index] = { ...this.data.employees[index], ...empData };
+                        Logger.log('info', `Employee updated: ${name}`, 'EmployeeManager');
+                    }
+                } else {
+                    // Add new employee
+                    const newEmp = {
+                        id: Date.now(),
+                        ...empData
+                    };
+                    this.data.employees.push(newEmp);
+                    Logger.log('info', `New employee added: ${name}`, 'EmployeeManager');
+                }
+                
+                this.saveData();
+                this.renderTable();
+                this.renderSchedule();
+                this.closeModals();
+                this.showToast('Employee saved successfully', 'success');
+            },
+            
+            deleteEmployee() {
+                const editId = document.getElementById('editEmpId').value;
+                if (!editId) return;
+                
+                const emp = this.data.employees.find(e => e.id === parseInt(editId));
+                if (!emp) return;
+                
+                if (confirm(`Are you sure you want to delete ${emp.name}? This action cannot be undone.`)) {
+                    // Remove employee
+                    this.data.employees = this.data.employees.filter(e => e.id !== parseInt(editId));
+                    
+                    // Remove related attendance data
+                    Object.keys(this.data.attendance).forEach(key => {
+                        if (this.data.attendance[key][editId]) {
+                            delete this.data.attendance[key][editId];
+                        }
+                    });
+                    
+                    // Remove related schedule data
+                    if (this.data.schedule[editId]) {
+                        delete this.data.schedule[editId];
+                    }
+                    
+                    // Remove related requests
+                    this.data.requests = this.data.requests.filter(r => r.empId !== parseInt(editId));
+                    
+                    this.saveData();
+                    this.renderTable();
+                    this.renderSchedule();
+                    this.renderRequests();
+                    this.closeModals();
+                    this.showToast('Employee deleted successfully', 'success');
+                    Logger.log('info', `Employee deleted: ${emp.name}`, 'EmployeeManager');
+                }
             },
             
             // --- System Lock ---
