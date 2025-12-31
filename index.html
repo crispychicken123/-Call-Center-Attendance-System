@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Master v5.1 (Schedule & Attendance)</title>
+    <title>HR Master v5.2 (Fixed Print)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -38,14 +38,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; transition: background 0.3s ease, color 0.3s ease; }
 
-        /* --- Alert Banner --- */
-        #alertBanner { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; padding: 12px 20px; color: white; font-size: 14px; font-weight: 500; display: none; justify-content: space-between; align-items: center; box-shadow: var(--shadow-lg); backdrop-filter: blur(4px); }
-        #alertBanner.warning { background: linear-gradient(90deg, #d97706, #b45309); }
-        #alertBanner.critical { background: linear-gradient(90deg, #dc2626, #991b1b); }
-        #alertBanner.show { display: flex; animation: slideDown 0.4s ease; }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        /* --- Print Styles --- */
+        @media print {
+            /* Hide everything by default */
+            body * { visibility: hidden; height: auto; overflow: visible; display: none !important; }
+            
+            /* Show ONLY the print area and tables */
+            #printEmployeeArea, .table-wrapper, .table-wrapper * { 
+                visibility: visible !important; 
+                display: block !important; 
+            }
+            
+            #printEmployeeArea { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                z-index: 9999; 
+                background: white; 
+                padding: 40px; 
+                color: black;
+            }
 
-        /* --- Header --- */
+            .table-wrapper { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                box-shadow: none; 
+                border: none; 
+                margin-top: 500px; /* Push table down if printing full list */
+            }
+            
+            th:first-child, td:first-child { position: static; }
+            .no-print { display: none !important; }
+            .agent-instructions { display: none; }
+            .day-cell { border: 1px solid #000 !important; color: black !important; background: white !important; }
+        }
+        
+        #printEmployeeArea { display: none; background: white; color: black; } /* Hidden on screen */
+
+        /* --- UI Components --- */
         header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; margin-top: 0; }
         body.dark-mode header { background: rgba(30, 41, 59, 0.8); }
         
@@ -57,7 +90,6 @@
         .btn-icon { background: transparent; border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
         .btn-icon:hover { background: var(--bg-body); color: var(--primary); }
 
-        /* --- Main Layout --- */
         main { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow: hidden; max-width: 1900px; margin: 0 auto; width: 100%; }
         
         .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -68,7 +100,6 @@
         .view-section { display: none; flex-direction: column; gap: 20px; height: 100%; }
         .view-section.active { display: flex; }
 
-        /* --- Toolbar --- */
         .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 16px 20px; border-radius: var(--radius); box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px; border: 1px solid var(--border); }
         .search-wrapper { position: relative; width: 300px; }
         .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -85,77 +116,56 @@
         .btn-danger { background: var(--secondary); }
         .btn-info { background: #8b5cf6; }
 
-        /* --- Tables (Shared & Specific) --- */
         .table-wrapper { flex: 1; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: auto; position: relative; border: 1px solid var(--border); }
         table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1200px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
         thead th { background: var(--bg-body); color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--border); }
         th:first-child, td:first-child { position: sticky; left: 0; z-index: 10; background: var(--surface); text-align: left; min-width: 220px; padding-left: 20px; border-right: 2px solid var(--border); }
         
-        .emp-cell { display: flex; align-items: center; gap: 14px; }
+        .emp-cell { display: flex; align-items: center; gap: 14px; cursor: pointer; transition: 0.2s; border-radius: 6px; padding: 4px; }
+        .emp-cell:hover { background-color: rgba(59, 130, 246, 0.1); }
         .emp-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); }
         .emp-info { display: flex; flex-direction: column; }
         .emp-name { font-weight: 600; color: var(--text-main); font-size: 14px; }
         .emp-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-        /* Schedule Specifics */
         .shift-cell { cursor: pointer; transition: 0.1s; user-select: none; font-size: 12px; line-height: 1.4; }
         .shift-cell:hover { background-color: rgba(59, 130, 246, 0.1); }
         .off-day { background-color: #f3f4f6; color: var(--text-muted); font-style: italic; letter-spacing: 1px; }
         .shift-time { display: block; font-weight: 600; color: var(--text-main); }
         .split-sep { color: var(--primary); font-size: 10px; margin: 2px 0; display: block; }
 
-        /* Agent Instructions Box */
+        /* Agent Instructions */
         .agent-instructions { background: #fffbeb; border: 1px solid #fcd34d; padding: 20px; border-radius: var(--radius); margin-top: 0; }
         .ai-header { font-weight: 700; color: #92400e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
         .ai-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
         .ai-list li { display: flex; gap: 10px; font-size: 13px; color: #78350f; align-items: flex-start; }
-        .ai-list i { margin-top: 3px; }
 
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .modal.active { display: flex; opacity: 1; }
-        .modal-card { background: var(--surface); width: 90%; max-width: 500px; border-radius: 16px; padding: 0; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-card { background: var(--surface); width: 90%; max-width: 600px; border-radius: 16px; padding: 0; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
         .modal.active .modal-card { transform: scale(1); }
         .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body); }
         .modal-title { font-size: 18px; font-weight: 700; color: var(--text-main); }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .close-modal:hover { background: var(--border); }
         .modal-body { padding: 24px; overflow-y: auto; }
         .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-body); }
         
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
         .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; background: var(--bg-body); color: var(--text-main); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .time-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
 
-        /* Stats & Legend */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
         .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border-left: 4px solid transparent; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
         .stat-info h3 { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
         .stat-info p { font-size: 24px; font-weight: 700; margin-top: 4px; }
-        .legend { display: flex; gap: 15px; font-size: 13px; color: var(--text-muted); }
-        .legend-item { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
 
-        /* Toast */
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: white; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; }
-        .toast.show { transform: translateY(0); }
-        .toast.success { border-left: 4px solid var(--success); }
-        .toast.error { border-left: 4px solid var(--secondary); }
-
-        /* Print */
-        @media print {
-            body * { visibility: hidden; height: auto; overflow: visible; }
-            #printEmployeeArea, .table-wrapper, .table-wrapper * { visibility: visible; }
-            #printEmployeeArea { position: absolute; left: 0; top: 0; width: 100%; z-index: 9999; background: white; padding: 40px; }
-            .table-wrapper { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; }
-            .no-print { display: none !important; }
-            .day-cell { border: 1px solid #000 !important; color: black !important; background: white !important; }
-            .agent-instructions { display: none; }
-        }
-        #printEmployeeArea { display: none; background: white; color: black; }
-        
+        /* Print Layout Styles */
         .print-header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .print-grid { display: grid; grid-template-columns: 180px 1fr; gap: 40px; }
         .print-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; }
@@ -169,6 +179,12 @@
         .ot-box h5 { font-size: 12px; color: #92400e; text-transform: uppercase; margin-bottom: 5px; }
         .ot-box p { font-size: 20px; font-weight: 700; color: #b45309; }
         .ot-highlight { border-color: #f59e0b; background: #fffbeb; }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: white; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; }
+        .toast.show { transform: translateY(0); }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--secondary); }
     </style>
 </head>
 <body>
@@ -178,7 +194,7 @@
         <div class="alert-content" style="display:flex; align-items:center; gap:15px;">
             <i class="fas fa-exclamation-circle"></i>
             <div>
-                <span id="alertTitle" style="font-weight: 700; text-transform: uppercase; margin-right: 15px;">Alerts:</span>
+                <span style="font-weight: 700; text-transform: uppercase; margin-right: 15px;">Alerts:</span>
                 <div id="alertList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
             </div>
         </div>
@@ -190,8 +206,8 @@
         <div class="brand">
             <i class="fas fa-calendar-check"></i>
             <div>
-                <h1>HR Master v5.1</h1>
-                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Attendance & Schedule Manager</span>
+                <h1>HR Master v5.2</h1>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Fixed Print & Edit</span>
             </div>
         </div>
         <div class="controls">
@@ -224,15 +240,12 @@
 
                     <div style="flex:1;"></div>
                     
-                    <div class="legend" id="legendContainer"></div>
-                    
                     <div class="actions">
-                        <button class="btn btn-info" onclick="app.openReportModal()"><i class="fas fa-file-alt"></i> Report</button>
                         <button class="btn btn-warning" onclick="app.openOTModal()"><i class="fas fa-clock"></i> Edit OT</button>
                         <button class="btn btn-secondary" onclick="app.openBulkModal()"><i class="fas fa-calendar-alt"></i> Bulk</button>
                         <button class="btn btn-primary" onclick="app.openEmployeeModal()"><i class="fas fa-user-plus"></i> Add Emp</button>
                         <button class="btn btn-success" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export</button>
-                        <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> View</button>
+                        <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> Print View</button>
                     </div>
                 </div>
             </div>
@@ -252,7 +265,7 @@
                 <table id="attendanceTable">
                     <thead>
                         <tr id="tableHeader">
-                            <th>Employee Details</th>
+                            <th>Employee Details (Click to Edit)</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -292,7 +305,7 @@
                 <table id="scheduleTable">
                     <thead>
                         <tr id="scheduleHeader">
-                            <th>Staff Member</th>
+                            <th>Staff Member (Click to Edit)</th>
                             <th>Sunday</th>
                             <th>Monday</th>
                             <th>Tuesday</th>
@@ -312,7 +325,8 @@
     <div id="printEmployeeArea"></div>
 
     <!-- Modals -->
-    <!-- Shift Edit Modal -->
+    
+    <!-- 1. Shift Edit Modal -->
     <div class="modal no-print" id="shiftModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -367,7 +381,7 @@
         </div>
     </div>
 
-    <!-- Employee Modal (Edit File) -->
+    <!-- 2. Employee Modal (Add/Edit/Print) -->
     <div class="modal no-print" id="employeeModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -376,81 +390,60 @@
             </div>
             <div class="modal-body">
                 <div class="form-grid">
-                    <div class="form-section" style="grid-column: span 2;">
-                        <div class="photo-upload" style="border:2px dashed var(--border); padding:20px; text-align:center;">
-                            <img id="empPhotoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
+                    <div style="grid-column: span 2; text-align: center; margin-bottom: 20px;">
+                        <img id="empPhotoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
+                        <div>
                             <label for="empPhotoInput" style="font-size:12px; color:var(--primary); font-weight:600; cursor:pointer; display:block; margin-top:10px;"><i class="fas fa-camera"></i> Change Photo</label>
                             <input type="file" id="empPhotoInput" accept="image/*" style="display: none;">
-                            <input type="hidden" id="empPhotoBase64">
                         </div>
+                        <input type="hidden" id="empPhotoBase64">
                     </div>
-                    <div class="form-section">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">Personal</h4>
-                        <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="empName" class="form-input"></div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group"><label class="form-label">Job Number</label><input type="text" id="empJobNumber" class="form-input"></div>
-                            <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="empPhone" class="form-input"></div>
-                        </div>
-                        <div class="form-group"><label class="form-label">Nationality</label><input type="text" id="empNationality" class="form-input"></div>
+                    
+                    <div style="grid-column: span 2; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Personal Information</label>
                     </div>
-                    <div class="form-section">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">Documents</h4>
-                        <div class="form-group"><label class="form-label">Passport</label><input type="text" id="empPassportNo" class="form-input"></div>
-                        <div class="form-group"><label class="form-label">Passport Exp</label><input type="date" id="empPassportExp" class="form-input"></div>
-                        <div class="form-group"><label class="form-label">EID No.</label><input type="text" id="empEIDNo" class="form-input"></div>
-                        <div class="form-group"><label class="form-label">EID Exp</label><input type="date" id="empEIDExp" class="form-input"></div>
+
+                    <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="empName" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Job Number</label><input type="text" id="empJobNumber" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="empPhone" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Nationality</label><input type="text" id="empNationality" class="form-input"></div>
+
+                    <div style="grid-column: span 2; margin-bottom:10px; margin-top:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Compliance Documents</label>
                     </div>
-                    <div class="form-section" style="grid-column: span 2;">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">HR Settings</h4>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                            <div class="form-group"><label class="form-label">Join Date</label><input type="date" id="empJoinDate" class="form-input"></div>
-                            <div class="form-group"><label class="form-label">Labor Card</label><input type="text" id="empLaborCard" class="form-input"></div>
-                            <div class="form-group"><label class="form-label">Insurance Exp</label><input type="date" id="empInsuranceExp" class="form-input"></div>
-                            <div class="form-group">
-                                <label class="form-label">Weekly Off</label>
-                                <select id="empWeeklyOff" class="form-select">
-                                    <option value="-1">None</option>
-                                    <option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option>
-                                    <option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option>
-                                </select>
-                            </div>
-                        </div>
+
+                    <div class="form-group"><label class="form-label">Passport No.</label><input type="text" id="empPassportNo" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Passport Exp</label><input type="date" id="empPassportExp" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">EID No.</label><input type="text" id="empEIDNo" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">EID Exp</label><input type="date" id="empEIDExp" class="form-input"></div>
+
+                    <div style="grid-column: span 2; margin-bottom:10px; margin-top:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">HR Settings</label>
                     </div>
+
+                    <div class="form-group"><label class="form-label">Join Date</label><input type="date" id="empJoinDate" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Weekly Off</label>
+                        <select id="empWeeklyOff" class="form-select">
+                            <option value="-1">None</option>
+                            <option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option>
+                            <option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Labor Card</label><input type="text" id="empLaborCard" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Insurance Exp</label><input type="date" id="empInsuranceExp" class="form-input"></div>
                 </div>
             </div>
             <input type="hidden" id="editEmpId">
             <div class="modal-footer">
                 <button class="btn btn-danger" id="deleteEmpBtn" style="display: none;" onclick="app.deleteEmployee()">Delete</button>
-                <button class="btn btn-secondary" onclick="app.printEmployeeProfile()"><i class="fas fa-print"></i> Reprint</button>
-                <button class="btn btn-primary" onclick="app.saveEmployee()">Save</button>
+                <!-- Print Button (Hidden for new employees) -->
+                <button class="btn btn-secondary" id="printEmpBtn" onclick="app.printEmployeeProfile()"><i class="fas fa-print"></i> Print Profile</button>
+                <button class="btn btn-primary" onclick="app.saveEmployee()">Save File</button>
             </div>
         </div>
     </div>
 
-    <!-- Report Modal -->
-    <div class="modal no-print" id="reportModal">
-        <div class="modal-card" style="max-width: 500px;">
-            <div class="modal-header">
-                <div class="modal-title" style="color: var(--primary);"><i class="fas fa-file-invoice"></i> Generate Report</div>
-                <button class="close-modal" onclick="app.closeModals()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label">Employee</label><select id="reportEmpSelect" class="form-select"></select></div>
-                <div class="form-group"><label class="form-label">Period</label>
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
-                        <select id="reportMonth" class="form-select"></select>
-                        <select id="reportYear" class="form-select"></select>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
-                    <button class="btn btn-primary" onclick="app.printDetailedReport()"><i class="fas fa-print"></i> Print (PDF)</button>
-                    <button class="btn btn-success" onclick="app.downloadEmpCSV()"><i class="fas fa-file-csv"></i> CSV Data</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attendance Edit Modal -->
+    <!-- 3. Attendance Edit Modal -->
     <div class="modal no-print" id="attendanceModal">
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header">
@@ -475,7 +468,7 @@
         </div>
     </div>
 
-    <!-- OT Modal -->
+    <!-- 4. OT Modal -->
     <div class="modal no-print" id="otModal">
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header">
@@ -506,7 +499,7 @@
         </div>
     </div>
 
-    <!-- Bulk Modal -->
+    <!-- 5. Bulk Modal -->
     <div class="modal no-print" id="bulkModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -533,7 +526,7 @@
 
     <script>
         const CONFIG = {
-            storageKeys: { employees: 'att_v51_employees', data: 'att_v51_data', schedule: 'att_v51_schedule' },
+            storageKeys: { employees: 'att_v52_employees', data: 'att_v52_data', schedule: 'att_v52_schedule' },
             statusColors: { present: '#dcfce7', overtime: '#cffafe', absent: '#fee2e2', vacation: '#fef3c7', sick: '#ede9fe', weeklyoff: '#dbeafe', emergency: '#fce7f3' }
         };
 
@@ -543,17 +536,14 @@
             init() {
                 this.loadData();
                 this.renderDateSelectors();
-                this.renderLegend();
-                this.renderStats();
                 this.renderTable();
-                this.renderSchedule(); // New
-                this.checkExpirations();
+                this.renderSchedule(); 
                 this.startClock();
                 this.loadTheme();
                 
                 // Listeners
-                document.getElementById('monthSelect').addEventListener('change', (e) => { this.data.currentMonth = parseInt(e.target.value); this.renderTable(); this.renderStats(); });
-                document.getElementById('yearSelect').addEventListener('change', (e) => { this.data.currentYear = parseInt(e.target.value); this.renderTable(); this.renderStats(); });
+                document.getElementById('monthSelect').addEventListener('change', (e) => { this.data.currentMonth = parseInt(e.target.value); this.renderTable(); });
+                document.getElementById('yearSelect').addEventListener('change', (e) => { this.data.currentYear = parseInt(e.target.value); this.renderTable(); });
                 document.getElementById('empPhotoInput').addEventListener('change', (e) => this.handleImageUpload(e));
             },
 
@@ -565,7 +555,7 @@
                 if(tab === 'attendance') {
                     document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
                     document.getElementById('view-attendance').classList.add('active');
-                    this.renderTable(); this.renderStats();
+                    this.renderTable(); 
                 } else {
                     document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
                     document.getElementById('view-schedule').classList.add('active');
@@ -573,9 +563,152 @@
                 }
             },
 
-            // --- Schedule Logic (New) ---
+            // --- Employee Management (Fixed Add/Edit) ---
+            openEmployeeModal(id = null) {
+                const modal = document.getElementById('employeeModal');
+                // Clear Form
+                document.querySelectorAll('#employeeModal input:not([type=hidden])').forEach(i => i.value = '');
+                document.getElementById('empPhotoBase64').value = '';
+                document.getElementById('empPhotoPreview').src = 'https://via.placeholder.com/80';
+                
+                // Set Title
+                document.querySelector('#employeeModal .modal-title').innerHTML = id ? '<i class="fas fa-user-edit"></i> Edit Employee File' : '<i class="fas fa-user-plus"></i> Add New Employee';
+                
+                // Hide/Show Buttons based on context
+                document.getElementById('deleteEmpBtn').style.display = id ? 'block' : 'none';
+                document.getElementById('printEmpBtn').style.display = id ? 'flex' : 'none'; // Only show print if editing existing
+
+                document.getElementById('editEmpId').value = id || '';
+
+                if(id) {
+                    const emp = this.data.employees.find(e => e.id === id);
+                    if(emp) {
+                        document.getElementById('empName').value = emp.name;
+                        document.getElementById('empJobNumber').value = emp.jobNumber;
+                        document.getElementById('empPhone').value = emp.phone;
+                        document.getElementById('empNationality').value = emp.nationality;
+                        document.getElementById('empPassportNo').value = emp.passportNo || '';
+                        document.getElementById('empPassportExp').value = emp.passportExp || '';
+                        document.getElementById('empEIDNo').value = emp.eidNo || '';
+                        document.getElementById('empEIDExp').value = emp.eidExp || '';
+                        document.getElementById('empJoinDate').value = emp.joinDate || '';
+                        document.getElementById('empLaborCard').value = emp.laborCard || '';
+                        document.getElementById('empInsuranceExp').value = emp.insuranceExp || '';
+                        document.getElementById('empWeeklyOff').value = emp.weeklyOff || '-1';
+                        if(emp.photo) document.getElementById('empPhotoPreview').src = emp.photo;
+                    }
+                }
+                modal.classList.add('active');
+            },
+
+            saveEmployee() {
+                const id = document.getElementById('editEmpId').value;
+                const data = {
+                    id: id ? parseInt(id) : Date.now(), // Create ID if new
+                    name: document.getElementById('empName').value, 
+                    jobNumber: document.getElementById('empJobNumber').value,
+                    phone: document.getElementById('empPhone').value, 
+                    nationality: document.getElementById('empNationality').value,
+                    passportNo: document.getElementById('empPassportNo').value, 
+                    passportExp: document.getElementById('empPassportExp').value,
+                    eidNo: document.getElementById('empEIDNo').value, 
+                    eidExp: document.getElementById('empEIDExp').value,
+                    joinDate: document.getElementById('empJoinDate').value, 
+                    laborCard: document.getElementById('empLaborCard').value,
+                    insuranceExp: document.getElementById('empInsuranceExp').value, 
+                    weeklyOff: document.getElementById('empWeeklyOff').value,
+                    photo: document.getElementById('empPhotoBase64').value
+                };
+                
+                if(!data.name) return this.toast('Name is required', 'error');
+                
+                if(id) {
+                    const idx = this.data.employees.findIndex(e => e.id == id);
+                    this.data.employees[idx] = data;
+                    this.toast('Employee Updated', 'success');
+                } else {
+                    this.data.employees.push(data);
+                    this.toast('Employee Added', 'success');
+                }
+                
+                this.saveData();
+                this.renderTable();
+                this.renderSchedule();
+                
+                // Update modal button state if we just saved a new one (so they can print if they want)
+                if(!id) {
+                    document.getElementById('editEmpId').value = data.id;
+                    document.querySelector('#employeeModal .modal-title').innerHTML = '<i class="fas fa-user-edit"></i> Edit Employee File';
+                    document.getElementById('deleteEmpBtn').style.display = 'block';
+                    document.getElementById('printEmpBtn').style.display = 'flex';
+                }
+            },
+
+            deleteEmployee() {
+                const id = document.getElementById('editEmpId').value;
+                if(confirm('Are you sure you want to delete this employee?')) {
+                    this.data.employees = this.data.employees.filter(e => e.id != id);
+                    this.saveData();
+                    this.renderTable();
+                    this.renderSchedule();
+                    this.closeModals();
+                    this.toast('Deleted', 'success');
+                }
+            },
+
+            // --- FIXED Print Logic ---
+            printEmployeeProfile() {
+                const id = document.getElementById('editEmpId').value;
+                if(!id) { this.toast('Save employee first', 'error'); return; }
+                
+                const emp = this.data.employees.find(e => e.id == id);
+                if(!emp) return;
+
+                // Generate HTML for Print Area
+                const printArea = document.getElementById('printEmployeeArea');
+                printArea.innerHTML = `
+                    <div class="print-header">
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">EMPLOYEE PROFILE</div>
+                        <div style="font-size: 14px; color: #666;">Date: ${new Date().toLocaleDateString()}</div>
+                    </div>
+                    <div class="print-grid">
+                        <div>
+                            <div style="text-align:center;">
+                                <img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo" style="margin:0 auto;">
+                            </div>
+                        </div>
+                        <div>
+                            <h2 style="margin-top:15px; color:#333;">${emp.name}</h2>
+                            <p style="font-size:14px; color:#555; margin-bottom:20px;"><strong>ID:</strong> ${emp.jobNumber || 'N/A'}</p>
+                            <div class="print-section">
+                                <div class="print-row"><span class="print-label">Phone:</span> <span class="print-val">${emp.phone || '-'}</span></div>
+                                <div class="print-row"><span class="print-label">Nationality:</span> <span class="print-val">${emp.nationality || '-'}</span></div>
+                                <div class="print-row"><span class="print-label">Join Date:</span> <span class="print-val">${emp.joinDate || '-'}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="print-section">
+                        <h4>Documents</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                            <div class="print-row"><span class="print-label">Passport:</span> <span class="print-val">${emp.passportNo || '-'} (Exp: ${emp.passportExp || '-'})</span></div>
+                            <div class="print-row"><span class="print-label">Emirates ID:</span> <span class="print-val">${emp.eidNo || '-'} (Exp: ${emp.eidExp || '-'})</span></div>
+                            <div class="print-row"><span class="print-label">Labor Card:</span> <span class="print-val">${emp.laborCard || '-'}</span></div>
+                            <div class="print-row"><span class="print-label">Insurance:</span> <span class="print-val">Exp: ${emp.insuranceExp || '-'}</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #777;">
+                        <div>HR Master v5.2 Official File</div>
+                        <div>Authorized Signature: _________________</div>
+                    </div>
+                `;
+                
+                // Trigger Print
+                window.print();
+            },
+
+            // --- Schedule Logic ---
             importDemoData() {
-                if(confirm("This will create 7 demo staff members and load the schedule from your text. Continue?")) {
+                if(confirm("Load Demo Staff? This will reset staff list.")) {
                     const demoStaff = [
                         { name: "Saleh Emad", job: "JD-001" }, { name: "Nona Rose", job: "JD-002" }, 
                         { name: "Melvin compendio", job: "JD-003" }, { name: "Asmita Sapkota", job: "JD-004" },
@@ -583,41 +716,20 @@
                         { name: "Hana", job: "JD-007" }
                     ];
                     
-                    // Create Employees
-                    demoStaff.forEach(s => {
-                        this.data.employees.push({
-                            id: Date.now() + Math.random(), name: s.name, jobNumber: s.job, phone: "", nationality: "",
-                            passportNo: "", passportExp: "", eidNo: "", eidExp: "", joinDate: "", laborCard: "", insuranceExp: "", weeklyOff: "-1", photo: ""
-                        });
-                    });
+                    this.data.employees = demoStaff.map(s => ({
+                        id: Date.now() + Math.random(), name: s.name, jobNumber: s.job, 
+                        phone: "", nationality: "", passportNo: "", passportExp: "", eidNo: "", eidExp: "", joinDate: "", laborCard: "", insuranceExp: "", weeklyOff: "-1", photo: ""
+                    }));
 
-                    // Create Schedule (Mapped from User Text)
-                    // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-                    // Format: { shift1: {s, e}, shift2: {s, e} } or null (off)
                     const sch = {};
-                    
-                    // Saleh: Fri(10-4/10-1), Sat(Off), Sun-Thu(10-7)
-                    sch[demoStaff[0].id] = { 5: {s1:"10:00",e1:"16:00",s2:"22:00",e2:"01:00"}, 6: null, 0:{s1:"10:00",e1:"19:00"}, 1:{s1:"10:00",e1:"19:00"}, 2:{s1:"10:00",e1:"19:00"}, 3:{s1:"10:00",e1:"19:00"}, 4:{s1:"10:00",e1:"19:00"} };
-                    
-                    // Nona: Fri(3-12), Sat(10-7), Sun-Thu(11-8), Thu(Off) - Wait, user says Off on Thursday?
-                    // Text: "Nona Rose" -> Row 2. Thursday col: "💥 Off Day". Yes.
-                    sch[demoStaff[1].id] = { 5: {s1:"15:00",e1:"00:00"}, 6:{s1:"10:00",e1:"19:00"}, 0:{s1:"11:00",e1:"20:00"}, 1:{s1:"11:00",e1:"20:00"}, 2:{s1:"11:00",e1:"20:00"}, 3:{s1:"11:00",e1:"20:00"}, 4: null };
-
-                    // Melvin: Fri(11-8), Sat(11-8), Sun(Off), Mon-Thu(11-8)
-                    sch[demoStaff[2].id] = { 5: {s1:"11:00",e1:"20:00"}, 6:{s1:"11:00",e1:"20:00"}, 0: null, 1:{s1:"11:00",e1:"20:00"}, 2:{s1:"11:00",e1:"20:00"}, 3:{s1:"11:00",e1:"20:00"}, 4:{s1:"11:00",e1:"20:00"} };
-
-                    // Asmita: Fri(Off), Sat(4-2), Sun(12-6/10-1), Mon(3-12), Tue(5-2), Wed(5-2), Thu(5-2)
-                    // Note: Times are 12h. 4PM=16:00, 2AM=02:00. 
-                    sch[demoStaff[3].id] = { 5: null, 6:{s1:"16:00",e1:"02:00"}, 0:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 1:{s1:"15:00",e1:"00:00"}, 2:{s1:"17:00",e1:"02:00"}, 3:{s1:"17:00",e1:"02:00"}, 4:{s1:"17:00",e1:"02:00"} };
-
-                    // Manju: Fri(12-4/10-3), Sat(12-6/10-1), Sun(5-2), Mon(5-2), Tue(Off), Wed(6-3), Thu(6-3)
-                    sch[demoStaff[4].id] = { 5:{s1:"12:00",e1:"16:00",s2:"22:00",e2:"03:00"}, 6:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 0:{s1:"17:00",e1:"02:00"}, 1:{s1:"17:00",e1:"02:00"}, 2: null, 3:{s1:"18:00",e1:"03:00"}, 4:{s1:"18:00",e1:"03:00"} };
-
-                    // Nirjala: Fri(6-3), Sat(Off), Sun(6-3), Mon(6-3), Tue(6-3), Wed(Off), Thu(6-3)
-                    sch[demoStaff[5].id] = { 5:{s1:"18:00",e1:"03:00"}, 6: null, 0:{s1:"18:00",e1:"03:00"}, 1:{s1:"18:00",e1:"03:00"}, 2:{s1:"18:00",e1:"03:00"}, 3: null, 4:{s1:"18:00",e1:"03:00"} };
-
-                    // Hana: Fri(10-7), Sat(10-7), Sun(Off), Mon(10-7), Tue(10-7), Wed(10-7), Thu(10-7)
-                    sch[demoStaff[6].id] = { 5:{s1:"10:00",e1:"19:00"}, 6:{s1:"10:00",e1:"19:00"}, 0: null, 1:{s1:"10:00",e1:"19:00"}, 2:{s1:"10:00",e1:"19:00"}, 3:{s1:"10:00",e1:"19:00"}, 4:{s1:"10:00",e1:"19:00"} };
+                    // 0=Sun, 5=Fri, 6=Sat
+                    sch[this.data.employees[0].id] = { 5: {s1:"10:00",e1:"16:00",s2:"22:00",e2:"01:00"}, 6: null, 0:{s1:"10:00",e1:"19:00"}, 1:{s1:"10:00",e1:"19:00"}, 2:{s1:"10:00",e1:"19:00"}, 3:{s1:"10:00",e1:"19:00"}, 4:{s1:"10:00",e1:"19:00"} };
+                    sch[this.data.employees[1].id] = { 5: {s1:"15:00",e1:"00:00"}, 6:{s1:"10:00",e1:"19:00"}, 0:{s1:"11:00",e1:"20:00"}, 1:{s1:"11:00",e1:"20:00"}, 2:{s1:"11:00",e1:"20:00"}, 3:{s1:"11:00",e1:"20:00"}, 4: null };
+                    sch[this.data.employees[2].id] = { 5: {s1:"11:00",e1:"20:00"}, 6:{s1:"11:00",e1:"20:00"}, 0: null, 1:{s1:"11:00",e1:"20:00"}, 2:{s1:"11:00",e1:"20:00"}, 3:{s1:"11:00",e1:"20:00"}, 4:{s1:"11:00",e1:"20:00"} };
+                    sch[this.data.employees[3].id] = { 5: null, 6:{s1:"16:00",e1:"02:00"}, 0:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 1:{s1:"15:00",e1:"00:00"}, 2:{s1:"17:00",e1:"02:00"}, 3:{s1:"17:00",e1:"02:00"}, 4:{s1:"17:00",e1:"02:00"} };
+                    sch[this.data.employees[4].id] = { 5:{s1:"12:00",e1:"16:00",s2:"22:00",e2:"03:00"}, 6:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 0:{s1:"17:00",e1:"02:00"}, 1:{s1:"17:00",e1:"02:00"}, 2: null, 3:{s1:"18:00",e1:"03:00"}, 4:{s1:"18:00",e1:"03:00"} };
+                    sch[this.data.employees[5].id] = { 5:{s1:"18:00",e1:"03:00"}, 6: null, 0:{s1:"18:00",e1:"03:00"}, 1:{s1:"18:00",e1:"03:00"}, 2:{s1:"18:00",e1:"03:00"}, 3: null, 4:{s1:"18:00",e1:"03:00"} };
+                    sch[this.data.employees[6].id] = { 5:{s1:"10:00",e1:"19:00"}, 6:{s1:"10:00",e1:"19:00"}, 0: null, 1:{s1:"10:00",e1:"19:00"}, 2:{s1:"10:00",e1:"19:00"}, 3:{s1:"10:00",e1:"19:00"}, 4:{s1:"10:00",e1:"19:00"} };
 
                     this.data.schedule = sch;
                     this.saveData();
@@ -636,10 +748,8 @@
                     days.forEach((dayName, idx) => {
                         const shift = empSch[idx];
                         let html = `<div class="shift-cell" onclick="app.openShiftModal(${emp.id}, ${idx}, '${dayName}')">`;
-                        
-                        if(!shift || shift.off) {
-                            html += `<span class="off-day">💥 Off</span>`;
-                        } else {
+                        if(!shift || shift.off) { html += `<span class="off-day">💥 Off</span>`; }
+                        else {
                             html += `<span class="shift-time">${this.formatTime(shift.s1)} - ${this.formatTime(shift.e1)}</span>`;
                             if(shift.s2 && shift.e2) {
                                 html += `<span class="split-sep">/</span><span class="shift-time">${this.formatTime(shift.s2)} - ${this.formatTime(shift.e2)}</span>`;
@@ -651,7 +761,7 @@
 
                     return `<tr>
                         <td>
-                            <div class="emp-cell">
+                            <div class="emp-cell" onclick="app.openEmployeeModal(${emp.id})">
                                 <img src="${emp.photo || 'https://via.placeholder.com/36'}" class="emp-avatar">
                                 <div class="emp-info">
                                     <span class="emp-name">${emp.name}</span>
@@ -677,8 +787,6 @@
                 
                 document.getElementById('shiftEmpName').value = emp.name;
                 document.getElementById('shiftDayName').value = dayName;
-                
-                // Set hidden ID
                 document.getElementById('shiftModal').dataset.empId = empId;
                 document.getElementById('shiftModal').dataset.dayIdx = dayIdx;
 
@@ -693,7 +801,6 @@
                     document.getElementById('shiftEnd2').value = shift ? (shift.e2 || "") : "";
                     this.toggleShiftInputs();
                 }
-
                 document.getElementById('shiftModal').classList.add('active');
             },
 
@@ -706,7 +813,6 @@
             saveShift(isClear) {
                 const empId = document.getElementById('shiftModal').dataset.empId;
                 const dayIdx = parseInt(document.getElementById('shiftModal').dataset.dayIdx);
-
                 if(!this.data.schedule[empId]) this.data.schedule[empId] = {};
 
                 if(isClear || document.getElementById('shiftOffDay').checked) {
@@ -716,66 +822,26 @@
                     const e1 = document.getElementById('shiftEnd1').value;
                     const s2 = document.getElementById('shiftStart2').value;
                     const e2 = document.getElementById('shiftEnd2').value;
-
                     if(!s1 || !e1) { this.toast('Primary shift required', 'error'); return; }
-
                     this.data.schedule[empId][dayIdx] = { s1, e1, s2, e2 };
                 }
-
                 this.saveData();
                 this.renderSchedule();
                 this.closeModals();
                 this.toast('Schedule Updated', 'success');
             },
 
-            // --- Existing Features (Refactored) ---
-            
-            loadData() {
-                const e = localStorage.getItem(CONFIG.storageKeys.employees);
-                if(e) this.data.employees = JSON.parse(e);
-                const a = localStorage.getItem(CONFIG.storageKeys.data);
-                if(a) this.data.attendance = JSON.parse(a);
-                const s = localStorage.getItem(CONFIG.storageKeys.schedule);
-                if(s) this.data.schedule = JSON.parse(s);
-            },
-
-            saveData() {
-                localStorage.setItem(CONFIG.storageKeys.employees, JSON.stringify(this.data.employees));
-                localStorage.setItem(CONFIG.storageKeys.data, JSON.stringify(this.data.attendance));
-                localStorage.setItem(CONFIG.storageKeys.schedule, JSON.stringify(this.data.schedule));
-            },
-
-            toggleTheme() {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-                document.getElementById('themeIcon').className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
-            },
-            loadTheme() { if(localStorage.getItem('theme')==='dark') { document.body.classList.add('dark-mode'); document.getElementById('themeIcon').className = 'fas fa-sun'; } },
-
-            // --- Attendance & Table Rendering ---
-            handleSearch() { 
-                this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); 
-                this.renderTable(); 
-            },
-            
-            renderDateSelectors() {
-                const m = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-                document.getElementById('monthSelect').innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
-                const y = [2024,2025,2026,2027,2028];
-                document.getElementById('yearSelect').innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
-            },
-
+            // --- Attendance Logic ---
             renderTable() {
                 const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
                 const tbody = document.getElementById('tableBody');
                 const thead = document.getElementById('tableHeader');
                 
-                let h = `<th>Employee</th>`;
+                let h = `<th>Employee Details (Click to Edit)</th>`;
                 for(let i=1; i<=daysInMonth; i++) {
                     const d = new Date(this.data.currentYear, this.data.currentMonth, i);
                     h += `<th style="min-width:40px;">${i}<br><span style="font-size:10px; opacity:0.7;">${d.toLocaleDateString('en-US',{weekday:'narrow'})}</span></th>`;
                 }
-                h += `<th>Days</th><th>OT</th>`;
                 thead.innerHTML = h;
 
                 const filtered = this.data.employees.filter(e => e.name.toLowerCase().includes(this.data.searchTerm) || (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm)));
@@ -785,13 +851,6 @@
                     for(let i=1; i<=daysInMonth; i++) {
                         const att = this.getAttendance(emp.id, i);
                         let content = '-', cls = '';
-                        
-                        // Check Schedule for "Off" days
-                        const dayIdx = new Date(this.data.currentYear, this.data.currentMonth, i).getDay();
-                        const isScheduledOff = this.data.schedule[emp.id] && this.data.schedule[emp.id][dayIdx] && (this.data.schedule[emp.id][dayIdx].off || !this.data.schedule[emp.id][dayIdx].s1);
-                        
-                        if(!att && isScheduledOff) { cls='status-unfilled'; content='-'; }
-                        
                         if(att) {
                             if(att.status==='present' || att.status==='overtime') {
                                 content=att.hours; worked++;
@@ -802,10 +861,22 @@
                             else if(att.status==='sick') { content='S'; cls='status-sick'; }
                             else if(att.status==='absent') { content='A'; cls='status-absent'; }
                         }
-                        cells += `<td class="day-cell ${cls}" onclick="app.openAttendanceModal(${emp.id},${i})">${content}</td>`;
+                        // Color mapping
+                        if(cls==='status-present') cls='background:#dcfce7; color:#166534';
+                        if(cls==='status-overtime') cls='background:#cffafe; color:#0e7490; border:2px solid #06b6d4; font-weight:700;';
+                        if(cls==='status-vacation') cls='background:#fef3c7; color:#92400e';
+                        if(cls==='status-sick') cls='background:#ede9fe; color:#5b21b6';
+                        if(cls==='status-weeklyoff') cls='background:#dbeafe; color:#1e40af';
+
+                        cells += `<td class="day-cell" style="${cls}" onclick="app.openAttendanceModal(${emp.id},${i})">${content}</td>`;
                     }
                     return `<tr>
-                        <td><div class="emp-cell"><img src="${emp.photo||'https://via.placeholder.com/36'}" class="emp-avatar"><div><div class="emp-name">${emp.name}</div><div class="emp-meta">${emp.jobNumber}</div></div></div></td>
+                        <td>
+                            <div class="emp-cell" onclick="app.openEmployeeModal(${emp.id})">
+                                <img src="${emp.photo||'https://via.placeholder.com/36'}" class="emp-avatar">
+                                <div><div class="emp-name">${emp.name}</div><div class="emp-meta">${emp.jobNumber}</div></div>
+                            </div>
+                        </td>
                         ${cells}
                         <td style="font-weight:bold">${worked}</td>
                         <td style="color:${ot>0?'var(--primary)':'inherit'}">${ot>0?'+'+ot:'-'}</td>
@@ -816,56 +887,6 @@
             getAttendance(id, day) {
                 const k = `${this.data.currentYear}_${this.data.currentMonth}`;
                 return (this.data.attendance[k] && this.data.attendance[k][id] && this.data.attendance[k][id][day]) || null;
-            },
-
-            // --- Modals Logic ---
-            openEmployeeModal(id=null) {
-                const m = document.getElementById('employeeModal');
-                m.querySelector('.modal-title').innerHTML = id ? '<i class="fas fa-user-edit"></i> Edit' : '<i class="fas fa-user-plus"></i> Add';
-                document.getElementById('deleteEmpBtn').style.display = id ? 'block' : 'none';
-                document.querySelectorAll('#employeeModal input:not([type=hidden])').forEach(i=>i.value='');
-                document.getElementById('empPhotoBase64').value='';
-                document.getElementById('empPhotoPreview').src='https://via.placeholder.com/80';
-
-                if(id) {
-                    const e = this.data.employees.find(x=>x.id===id);
-                    document.getElementById('editEmpId').value = id;
-                    document.getElementById('empName').value=e.name; document.getElementById('empJobNumber').value=e.jobNumber;
-                    document.getElementById('empPhone').value=e.phone; document.getElementById('empNationality').value=e.nationality;
-                    document.getElementById('empPassportNo').value=e.passportNo; document.getElementById('empPassportExp').value=e.passportExp;
-                    document.getElementById('empEIDNo').value=e.eidNo; document.getElementById('empEIDExp').value=e.eidExp;
-                    document.getElementById('empJoinDate').value=e.joinDate; document.getElementById('empLaborCard').value=e.laborCard;
-                    document.getElementById('empInsuranceExp').value=e.insuranceExp; document.getElementById('empWeeklyOff').value=e.weeklyOff;
-                    if(e.photo) document.getElementById('empPhotoPreview').src=e.photo;
-                }
-                m.classList.add('active');
-            },
-
-            saveEmployee() {
-                const id = document.getElementById('editEmpId').value;
-                const data = {
-                    id: id ? parseInt(id) : Date.now(),
-                    name: document.getElementById('empName').value, jobNumber: document.getElementById('empJobNumber').value,
-                    phone: document.getElementById('empPhone').value, nationality: document.getElementById('empNationality').value,
-                    passportNo: document.getElementById('empPassportNo').value, passportExp: document.getElementById('empPassportExp').value,
-                    eidNo: document.getElementById('empEIDNo').value, eidExp: document.getElementById('empEIDExp').value,
-                    joinDate: document.getElementById('empJoinDate').value, laborCard: document.getElementById('empLaborCard').value,
-                    insuranceExp: document.getElementById('empInsuranceExp').value, weeklyOff: document.getElementById('empWeeklyOff').value,
-                    photo: document.getElementById('empPhotoBase64').value
-                };
-                if(!data.name) return this.toast('Name required','error');
-                
-                if(id) { const idx = this.data.employees.findIndex(x=>x.id==id); this.data.employees[idx]=data; } 
-                else { this.data.employees.push(data); }
-                
-                this.saveData(); this.renderTable(); this.renderSchedule(); this.closeModals(); this.toast('Saved','success');
-            },
-            deleteEmployee() {
-                if(confirm('Delete?')) {
-                    const id = document.getElementById('editEmpId').value;
-                    this.data.employees = this.data.employees.filter(e=>e.id!=id);
-                    this.saveData(); this.renderTable(); this.renderSchedule(); this.closeModals(); this.toast('Deleted','success');
-                }
             },
 
             openAttendanceModal(id, day) {
@@ -894,7 +915,7 @@
                 this.saveData(); this.renderTable(); this.closeModals(); this.toast('Updated','success');
             },
 
-            // --- Bulk, OT, Report, Print (Simplified for brevity but functional) ---
+            // --- Bulk & OT (Simplified) ---
             openBulkModal() {
                 const s = document.getElementById('bulkEmpSelect');
                 s.innerHTML = '<option value="all">ALL</option>'+this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
@@ -909,11 +930,9 @@
                 const start = new Date(document.getElementById('bulkStart').value);
                 const end = new Date(document.getElementById('bulkEnd').value);
                 if(end<start) return this.toast('Invalid range','error');
-                
                 const targets = eid==='all' ? this.data.employees : this.data.employees.filter(e=>e.id==eid);
                 const k = `${this.data.currentYear}_${this.data.currentMonth}`;
                 if(!this.data.attendance[k]) this.data.attendance[k]={};
-
                 let d = new Date(start);
                 while(d<=end) {
                     if(d.getMonth()===this.data.currentMonth) {
@@ -945,11 +964,9 @@
                 const act = document.getElementById('otAction').value;
                 const start = new Date(document.getElementById('otStart').value);
                 const end = new Date(document.getElementById('otEnd').value);
-                
                 const targets = eid==='all' ? this.data.employees : this.data.employees.filter(e=>e.id==eid);
                 const k = `${this.data.currentYear}_${this.data.currentMonth}`;
                 if(!this.data.attendance[k]) this.data.attendance[k]={};
-
                 let d = new Date(start);
                 while(d<=end) {
                     if(d.getMonth()===this.data.currentMonth) {
@@ -968,18 +985,30 @@
                 this.saveData(); this.renderTable(); this.closeModals(); this.toast('OT Updated','success');
             },
 
-            // --- Reporting ---
-            openReportModal() {
-                const s = document.getElementById('reportEmpSelect');
-                s.innerHTML = this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-                document.getElementById('reportMonth').innerHTML = ["January","February","March","April","May","June","July","August","September","October","November","December"].map((m,i)=>`<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${m}</option>`).join('');
-                document.getElementById('reportYear').innerHTML = [2024,2025,2026,2027,2028].map(y=>`<option value="${y}" ${y===this.data.currentYear?'selected':''}>${y}</option>`).join('');
-                document.getElementById('reportModal').classList.add('active');
+            // --- Utils ---
+            loadData() {
+                const e = localStorage.getItem(CONFIG.storageKeys.employees); if(e) this.data.employees = JSON.parse(e);
+                const a = localStorage.getItem(CONFIG.storageKeys.data); if(a) this.data.attendance = JSON.parse(a);
+                const s = localStorage.getItem(CONFIG.storageKeys.schedule); if(s) this.data.schedule = JSON.parse(s);
             },
-            printDetailedReport() { /* Simplified Print Logic */ window.print(); },
-            downloadEmpCSV() { /* Simplified CSV Logic */ this.toast('CSV Feature available in full version','info'); },
-
-            // --- Utilities ---
+            saveData() {
+                localStorage.setItem(CONFIG.storageKeys.employees, JSON.stringify(this.data.employees));
+                localStorage.setItem(CONFIG.storageKeys.data, JSON.stringify(this.data.attendance));
+                localStorage.setItem(CONFIG.storageKeys.schedule, JSON.stringify(this.data.schedule));
+            },
+            toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+                document.getElementById('themeIcon').className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
+            },
+            loadTheme() { if(localStorage.getItem('theme')==='dark') { document.body.classList.add('dark-mode'); document.getElementById('themeIcon').className = 'fas fa-sun'; } },
+            handleSearch() { this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); this.renderTable(); },
+            renderDateSelectors() {
+                const m = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                document.getElementById('monthSelect').innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
+                const y = [2024,2025,2026,2027,2028];
+                document.getElementById('yearSelect').innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
+            },
             handleImageUpload(e) {
                 const f = e.target.files[0]; if(!f)return;
                 const r = new FileReader(); r.readAsDataURL(f);
@@ -997,18 +1026,14 @@
                 };
             },
             closeModals() { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); },
+            exportCSV() { window.print(); },
             toast(msg,t) {
                 const el=document.getElementById('toast');
                 document.getElementById('toastMsg').innerText=msg;
                 el.className=`toast show ${t}`;
                 setTimeout(()=>el.classList.remove('show'),3000);
             },
-            startClock() { setInterval(()=>document.getElementById('clock').innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),1000); },
-            renderStats() { /* Simplified for brevity */ document.getElementById('statsContainer').innerHTML=''; }, // Removed detailed stats to fit file
-            renderLegend() { /* Simplified */ document.getElementById('legendContainer').innerHTML=''; },
-            checkExpirations() { /* Simplified */ },
-            exportCSV() { this.toast('Exporting...', 'success'); setTimeout(()=>window.print(),1000); }, // Uses Print for now
-            printEmployeeProfile() { window.print(); }
+            startClock() { setInterval(()=>document.getElementById('clock').innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),1000); }
         };
 
         document.addEventListener('DOMContentLoaded', () => app.init());
