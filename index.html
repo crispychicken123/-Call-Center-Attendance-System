@@ -338,7 +338,7 @@
             vertical-align: middle;
             transition: var(--transition);
         }
-        thead th { 
+        .thead th { 
             background: var(--bg-body); 
             color: var(--text-muted); 
             font-weight: 700; 
@@ -935,6 +935,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="table-wrapper">
                 <table id="scheduleTable">
                     <thead>
@@ -985,7 +986,7 @@
                             <th>Dates (Start - End)</th>
                             <th>Duration</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th class="no-print">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="requestsBody">
@@ -1044,7 +1045,7 @@
                             <th>Working days</th>
                             <th>Absent Days</th>
                             <th>Vacation Days</th>
-                            <th>Sickleave</th>
+                            <th>Sick Days</th>
                             <th>Total days</th>
                             <th>Overtime Hours</th>
                             <th>Overtime Days</th>
@@ -1129,66 +1130,44 @@
                 <button class="close-modal" onclick="app.closeModals()">&times;</button>
             </div>
             <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img id="empPhotoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
+                    <div>
+                        <label for="empPhotoInput" style="font-size:12px; color:var(--primary); font-weight:600; cursor:pointer; display:block; margin-top:10px;">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                        <input type="file" id="empPhotoInput" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+                <input type="hidden" id="empPhotoBase64">
                 <div class="form-grid">
-                    <div style="grid-column: span 2; text-align: center; margin-bottom: 20px;">
-                        <img id="empPhotoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
-                        <div>
-                            <label for="empPhotoInput" style="font-size:12px; color:var(--primary); font-weight:600; cursor:pointer; display:block; margin-top:10px;">
-                                <i class="fas fa-camera"></i> Change Photo
-                            </label>
-                            <input type="file" id="empPhotoInput" accept="image/*" style="display: none;">
-                        </div>
-                        <input type="hidden" id="empPhotoBase64">
+                    <div style="grid-column: span 2; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Personal Information</label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label required">Full Name</label>
-                        <input type="text" id="empName" class="form-input">
+                    <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="empName" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Job Number</label><input type="text" id="empJobNumber" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="empPhone" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Nationality</label><input type="text" id="empNationality" class="form-input"></div>
+                    <div style="grid-column: span 2; margin-bottom:10px; margin-top:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Compliance Documents</label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Job Number</label>
-                        <input type="text" id="empJobNumber" class="form-input">
+                    <div class="form-group"><label class="form-label">Passport No.</label><input type="text" id="empPassportNo" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Passport Exp</label><input type="date" id="empPassportExp" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">EID No.</label><input type="text" id="empEIDNo" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">EID Exp</label><input type="date" id="empEIDExp" class="form-input"></div>
+                    <div style="grid-column: span 2; margin-bottom:10px; margin-top:10px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">HR Settings</label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Phone</label>
-                        <input type="tel" id="empPhone" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Nationality</label>
-                        <input type="text" id="empNationality" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Passport No.</label>
-                        <input type="text" id="empPassportNo" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Passport Exp</label>
-                        <input type="date" id="empPassportExp" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">EID No.</label>
-                        <input type="text" id="empEIDNo" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">EID Exp</label>
-                        <input type="date" id="empEIDExp" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Join Date</label>
-                        <input type="date" id="empJoinDate" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Weekly Off</label>
+                    <div class="form-group"><label class="form-label">Join Date</label><input type="date" id="empJoinDate" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Weekly Off</label>
                         <select id="empWeeklyOff" class="form-select">
                             <option value="-1">None</option>
-                            <option value="0">Sun</option>
-                            <option value="1">Mon</option>
-                            <option value="2">Tue</option>
-                            <option value="3">Wed</option>
-                            <option value="4">Thu</option>
-                            <option value="5">Fri</option>
-                            <option value="6">Sat</option>
+                            <option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option>
+                            <option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option>
                         </select>
                     </div>
+                    <div class="form-group"><label class="form-label">Labor Card</label><input type="text" id="empLaborCard" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Insurance Exp</label><input type="date" id="empInsuranceExp" class="form-input"></div>
                 </div>
             </div>
             <input type="hidden" id="editEmpId">
@@ -1210,23 +1189,12 @@
                 <button class="close-modal" onclick="app.closeModals()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Employee</label>
-                    <input type="text" id="modalEmpName" class="form-input" disabled>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="text" id="modalDate" class="form-input" disabled>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
+                <div class="form-group"><label class="form-label">Employee</label><input type="text" id="modalEmpName" class="form-input" disabled></div>
+                <div class="form-group"><label class="form-label">Date</label><input type="text" id="modalDate" class="form-input" disabled></div>
+                <div class="form-group"><label class="form-label">Status</label>
                     <select id="modalStatus" class="form-select" onchange="app.toggleHoursInput()">
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                        <option value="vacation">Vacation</option>
-                        <option value="unpaid">Unpaid Leave</option>
-                        <option value="sick">Sick</option>
-                        <option value="weeklyoff">Weekly Off</option>
+                        <option value="present">Present</option><option value="absent">Absent</option><option value="vacation">Vacation</option>
+                        <option value="unpaid">Unpaid Leave</option><option value="sick">Sick</option><option value="weeklyoff">Weekly Off</option><option value="emergency">Emergency</option>
                     </select>
                 </div>
                 <div class="form-group" id="hoursGroup">
@@ -1234,9 +1202,7 @@
                     <input type="number" id="modalHours" class="form-input" value="9" min="0" max="24" step="0.5">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="app.saveAttendance()">Update</button>
-            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="app.saveAttendance()">Update</button></div>
         </div>
     </div>
 
@@ -1250,33 +1216,15 @@
                 <button class="close-modal" onclick="app.closeModals()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Employee</label>
-                    <select id="otEmpSelect" class="form-select"></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Range</label>
+                <div class="form-group"><label class="form-label">Employee</label><select id="otEmpSelect" class="form-select"></select></div>
+                <div class="form-group"><label class="form-label">Range</label>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <input type="date" id="otStart" class="form-input">
-                        <input type="date" id="otEnd" class="form-input">
+                        <input type="date" id="otStart" class="form-input"><input type="date" id="otEnd" class="form-input">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Action</label>
-                    <select id="otAction" class="form-select" onchange="app.toggleOTActionUI()">
-                        <option value="add">Add Extra Hours (To 9h)</option>
-                        <option value="override">Set Total Hours (Edit)</option>
-                    </select>
-                </div>
-                <div class="form-group" id="otValueGroup">
-                    <label class="form-label" id="otValueLabel">Hours</label>
-                    <input type="number" id="otHours" class="form-input" value="2" step="0.5">
-                    <small style="color:var(--text-muted);">Adds to standard 9h.</small>
-                </div>
+                <div class="form-group"><label class="form-label">Hours</label><input type="number" id="otHours" class="form-input" value="2" step="0.5"></div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-warning" onclick="app.applyQuickOT()">Apply</button>
-            </div>
+            <div class="modal-footer"><button class="btn btn-warning" onclick="app.applyQuickOT()">Apply</button></div>
         </div>
     </div>
 
@@ -1289,34 +1237,15 @@
             </div>
             <div class="modal-body">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <div class="form-group">
-                        <label class="form-label">Employee</label>
-                        <select id="bulkEmpSelect" class="form-select"></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select id="bulkStatus" class="form-select">
-                            <option value="present">Present</option>
-                            <option value="absent">Absent</option>
-                            <option value="vacation">Vacation</option>
-                            <option value="unpaid">Unpaid</option>
-                            <option value="sick">Sick</option>
-                            <option value="weeklyoff">Off</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Start</label>
-                        <input type="date" id="bulkStart" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">End</label>
-                        <input type="date" id="bulkEnd" class="form-input">
-                    </div>
+                    <div class="form-group"><label class="form-label">Employee</label><select id="bulkEmpSelect" class="form-select"></select></div>
+                    <div class="form-group"><label class="form-label">Status</label><select id="bulkStatus" class="form-select">
+                        <option value="present">Present</option><option value="absent">Absent</option><option value="vacation">Vacation</option><option value="unpaid">Unpaid</option><option value="sick">Sick</option><option value="weeklyoff">Off</option>
+                    </select></div>
+                    <div class="form-group"><label class="form-label">Start</label><input type="date" id="bulkStart" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">End</label><input type="date" id="bulkEnd" class="form-input"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="app.applyBulkAction()">Apply</button>
-            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="app.applyBulkAction()">Apply</button></div>
         </div>
     </div>
 
@@ -1330,38 +1259,19 @@
                 <button class="close-modal" onclick="app.closeModals()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Employee</label>
-                    <select id="reqEmpSelect" class="form-select"></select>
+                <div class="form-group"><label class="form-label">Employee</label><select id="reqEmpSelect" class="form-select"></select></div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">Request Type</label><select id="reqType" class="form-select">
+                            <option value="vacation">Annual Vacation (Paid)</option><option value="unpaid">Unpaid Leave</option></select></div>
+                    <div class="form-group"><label class="form-label">Start Date</label><input type="date" id="reqStart" class="form-input" onchange="app.calculateReturnDate()"></div>
                 </div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Request Type</label>
-                        <select id="reqType" class="form-select">
-                            <option value="vacation">Annual Vacation (Paid)</option>
-                            <option value="unpaid">Unpaid Leave</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Start Date (Month/Date)</label>
-                        <input type="date" id="reqStart" class="form-input" onchange="app.calculateReturnDate()">
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">How Long? (Days)</label>
-                        <input type="number" id="reqDuration" class="form-input" value="1" min="1" max="30" oninput="app.calculateReturnDate()">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">When Come Back?</label>
-                        <input type="text" id="reqReturnDisplay" class="form-input" readonly style="background: var(--bg-body); font-weight: 600; color: var(--primary);">
+                    <div class="form-group"><label class="form-label">How Long? (Days)</label><input type="number" id="reqDuration" class="form-input" value="1" min="1" max="30" oninput="app.calculateReturnDate()"></div>
+                    <div class="form-group"><label class="form-label">When Come Back?</label><input type="text" id="reqReturnDisplay" class="form-input" readonly style="background: var(--bg-body); font-weight: 600; color: var(--primary);">
                         <input type="hidden" id="reqEndCalc">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Reason / Notes</label>
-                    <textarea id="reqReason" class="form-textarea" placeholder="Reason for leave..."></textarea>
-                </div>
+                <div class="form-group"><label class="form-label">Reason / Notes</label><textarea id="reqReason" class="form-textarea" placeholder="Reason for leave..."></textarea></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="app.closeModals()">Cancel</button>
@@ -1385,7 +1295,7 @@
                 employees: 'att_v58_employees', 
                 data: 'att_v58_data', 
                 schedule: 'att_v58_schedule', 
-                requests: 'att_v58_requests',
+                leaves: 'att_v58_requests',
                 theme: 'att_v58_theme'
             },
             statusColors: { 
@@ -1417,7 +1327,7 @@
                 this.loadData();
                 this.renderDateSelectors();
                 this.renderTable();
-                this.renderSchedule();
+                this.renderSchedule(); 
                 this.renderRequests();
                 this.renderSummary();
                 this.startClock();
@@ -1440,31 +1350,6 @@
                 document.addEventListener('click', (e) => {
                     if(!e.target.closest('.system-menu')) {
                         document.getElementById('sysDropdown').classList.remove('show');
-                    }
-                });
-                
-                // Keyboard shortcuts
-                document.addEventListener('keydown', (e) => {
-                    // Ctrl/Cmd + N: New employee
-                    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                        e.preventDefault();
-                        app.openEmployeeModal();
-                    }
-                    
-                    // Ctrl/Cmd + S: Save (when modal is open)
-                    if ((e.ctrlKey || e.metaKey) && e.key === 's' && document.querySelector('.modal.active')) {
-                        e.preventDefault();
-                        const activeModal = document.querySelector('.modal.active');
-                        if (activeModal.id === 'employeeModal') {
-                            app.saveEmployee();
-                        } else if (activeModal.id === 'shiftModal') {
-                            app.saveShift(false);
-                        }
-                    }
-                    
-                    // Escape: Close modal
-                    if (e.key === 'Escape' && document.querySelector('.modal.active')) {
-                        app.closeModals();
                     }
                 });
                 
@@ -1503,7 +1388,7 @@
                 const clonedContent = activeView.cloneNode(true);
                 
                 // Remove non-printable elements
-                clonedContent.querySelectorAll('.no-print, .btn, .modal, .toolbar, .tabs, .search-wrapper, .actions').forEach(el => el.remove());
+                clonedContent.querySelectorAll('.no-print, .btn, .modal, .toolbar, .tabs, .search-wrapper, .actions, .charts-container').forEach(el => el.remove());
                 
                 // Apply print-specific styles
                 clonedContent.querySelectorAll('table').forEach(table => {
@@ -1708,6 +1593,8 @@
                         }
                         
                         const totalDays = workingDays + absentDays + vacationDays + sickDays;
+                        const totalOverTime = overtimeHours;
+                        
                         return [
                             `"${emp.name}"`,
                             `"${emp.jobNumber || ''}"`,
@@ -1718,7 +1605,7 @@
                             totalDays,
                             overtimeHours,
                             overtimeDays,
-                            overtimeHours
+                            totalOverTime
                         ].join(',');
                     });
                     
@@ -1762,19 +1649,7 @@
                 }
                 
                 // Create print area
-                const printArea = document.createElement('div');
-                printArea.id = 'printEmployeeArea';
-                printArea.style.position = 'absolute';
-                printArea.style.left = '0';
-                printArea.style.top = '0';
-                printArea.style.width = '100%';
-                printArea.style.zIndex = '9999';
-                printArea.style.background = 'white';
-                printArea.style.padding = '40px';
-                printArea.style.color = 'black';
-                printArea.style.display = 'block';
-                
-                // Create print content
+                const printArea = document.getElementById('printEmployeeArea');
                 printArea.innerHTML = `
                     <div style="max-width: 800px; margin: 0 auto;">
                         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px;">
@@ -1851,15 +1726,15 @@
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
                 
-                if(tab === 'attendance') {
+                if (tab === 'attendance') {
                     document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
                     document.getElementById('view-attendance').classList.add('active');
                     this.renderTable(); 
-                } else if(tab === 'schedule') {
+                } else if (tab === 'schedule') {
                     document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
                     document.getElementById('view-schedule').classList.add('active');
                     this.renderSchedule();
-                } else if(tab === 'requests') {
+                } else if (tab === 'requests') {
                     document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
                     document.getElementById('view-requests').classList.add('active');
                     this.renderRequests();
@@ -1877,7 +1752,7 @@
             
             downloadBackup() {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data));
-                const downloadAnchorNode = document.createElement('a');
+                const downloadAnchorNode = document.createElement("a");
                 downloadAnchorNode.setAttribute("href", dataStr);
                 const d = new Date();
                 downloadAnchorNode.setAttribute("download", `HR_Master_Backup_${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}.json`);
@@ -1979,12 +1854,7 @@
                 
                 // Calculate stats for each employee
                 const summaryRows = this.data.employees.map((emp, index) => {
-                    let workingDays = 0;
-                    let absentDays = 0;
-                    let vacationDays = 0;
-                    let sickDays = 0;
-                    let overtimeHours = 0;
-                    let overtimeDays = 0;
+                    let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0, overtimeHours = 0, overtimeDays = 0;
                     
                     for(let i=1; i<=daysInMonth; i++) {
                         const att = this.getAttendance(emp.id, i);
@@ -1995,11 +1865,11 @@
                                     overtimeHours += (att.hours - 9);
                                     overtimeDays++;
                                 }
-                            } else if (att.status === 'absent') {
+                            } else if(att.status === 'absent') {
                                 absentDays++;
-                            } else if (att.status === 'vacation') {
+                            } else if(att.status === 'vacation') {
                                 vacationDays++;
-                            } else if (att.status === 'sick') {
+                            } else if(att.status === 'sick') {
                                 sickDays++;
                             }
                         } else {
@@ -2039,8 +1909,7 @@
                 // Prepare data
                 const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
                 const summaryData = this.data.employees.map(emp => {
-                    let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0;
-                    let overtimeHours = 0;
+                    let workingDays = 0, absentDays = 0, vacationDays = 0, sickDays = 0, overtimeHours = 0;
                     
                     for (let i = 1; i <= daysInMonth; i++) {
                         const att = this.getAttendance(emp.id, i);
@@ -2164,14 +2033,8 @@
                 this.showLoading();
                 const modal = document.getElementById('employeeModal');
                 document.querySelectorAll('#employeeModal input:not([type=hidden])').forEach(i => i.value = '');
-                if(!id) {
-                    document.getElementById('empPhotoBase64').value = '';
-                    document.getElementById('empPhotoPreview').src = 'https://via.placeholder.com/80';
-                }
-                document.querySelector('#employeeModal .modal-title').innerHTML = id ? '<i class="fas fa-user-edit"></i> Edit Employee' : '<i class="fas fa-user-plus"></i> Add New Employee';
-                document.getElementById('deleteEmpBtn').style.display = id ? 'block' : 'none';
-                document.getElementById('printEmpBtn').style.display = id ? 'flex' : 'none';
-                document.getElementById('editEmpId').value = id || '';
+                document.getElementById('empPhotoBase64').value = '';
+                document.getElementById('empPhotoPreview').src = 'https://via.placeholder.com/80';
                 
                 if(id) {
                     const emp = this.data.employees.find(e => e.id === id);
@@ -2185,6 +2048,8 @@
                         document.getElementById('empEIDNo').value = emp.eidNo || '';
                         document.getElementById('empEIDExp').value = emp.eidExp || '';
                         document.getElementById('empJoinDate').value = emp.joinDate || '';
+                        document.getElementById('empLaborCard').value = emp.laborCard || '';
+                        document.getElementById('empInsuranceExp').value = emp.insuranceExp || '';
                         document.getElementById('empWeeklyOff').value = emp.weeklyOff || '-1';
                         if(emp.photo) document.getElementById('empPhotoPreview').src = emp.photo;
                         document.getElementById('empPhotoBase64').value = emp.photo || '';
@@ -2193,36 +2058,7 @@
                 this.hideLoading();
                 modal.classList.add('active');
             },
-            
-            validateEmployeeForm() {
-                const name = document.getElementById('empName').value.trim();
-                if (!name) {
-                    this.showToast('Name is required', 'error');
-                    return false;
-                }
-                
-                const phone = document.getElementById('empPhone').value;
-                if (phone && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
-                    this.showToast('Invalid phone number', 'error');
-                    return false;
-                }
-                
-                const passportExp = document.getElementById('empPassportExp').value;
-                const eidExp = document.getElementById('empEIDExp').value;
-                
-                if (passportExp && new Date(passportExp) < new Date()) {
-                    this.showToast('Passport expiration date cannot be in the past', 'error');
-                    return false;
-                }
-                
-                if (eidExp && new Date(eidExp) < new Date()) {
-                    this.showToast('EID expiration date cannot be in the past', 'error');
-                    return false;
-                }
-                
-                return true;
-            },
-            
+
             saveEmployee() {
                 if (!this.validateEmployeeForm()) {
                     return;
@@ -2251,6 +2087,8 @@
                             eidNo: document.getElementById('empEIDNo').value,
                             eidExp: document.getElementById('empEIDExp').value,
                             joinDate: document.getElementById('empJoinDate').value,
+                            laborCard: document.getElementById('empLaborCard').value,
+                            insuranceExp: document.getElementById('empInsuranceExp').value,
                             weeklyOff: document.getElementById('empWeeklyOff').value || '-1', 
                             photo: finalPhoto
                         };
@@ -2269,6 +2107,8 @@
                         eidNo: document.getElementById('empEIDNo').value,
                         eidExp: document.getElementById('empEIDExp').value,
                         joinDate: document.getElementById('empJoinDate').value,
+                        laborCard: document.getElementById('empLaborCard').value,
+                        insuranceExp: document.getElementById('empInsuranceExp').value,
                         weeklyOff: document.getElementById('empWeeklyOff').value || '-1',
                         photo: finalPhoto
                     };
@@ -2292,7 +2132,36 @@
                 
                 this.hideLoading();
             },
-            
+
+            validateEmployeeForm() {
+                const name = document.getElementById('empName').value.trim();
+                if (!name) {
+                    this.showToast('Name is required', 'error');
+                    return false;
+                }
+                
+                const phone = document.getElementById('empPhone').value;
+                if (phone && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
+                    this.showToast('Invalid phone number', 'error');
+                    return false;
+                }
+                
+                const passportExp = document.getElementById('empPassportExp').value;
+                const eidExp = document.getElementById('empEIDExp').value;
+                
+                if (passportExp && new Date(passportExp) < new Date()) {
+                    this.showToast('Passport expiration date cannot be in past', 'error');
+                    return false;
+                }
+                
+                if (eidExp && new Date(eidExp) < new Date()) {
+                    this.showToast('EID expiration date cannot be in past', 'error');
+                    return false;
+                }
+                
+                return true;
+            },
+
             deleteEmployee() {
                 const id = document.getElementById('editEmpId').value;
                 if(confirm('Delete this employee?')) {
@@ -2301,46 +2170,20 @@
                     this.saveData();
                     this.renderTable(); 
                     this.renderSchedule(); 
-                    this.renderRequests(); 
+                    this.renderRequests();
                     this.renderSummary();
                     this.closeModals();
-                    this.showToast('Deleted', 'success');
                     this.hideLoading();
+                    this.showToast('Deleted', 'success');
                 }
             },
-            
-            // --- Toast Notification System ---
-            showToast(message, type = 'success') {
-                const toast = document.getElementById('toast');
-                document.getElementById('toastMsg').innerText = message;
-                
-                // Update icon and color based on type
-                const icon = toast.querySelector('i');
-                if (type === 'success') {
-                    icon.className = 'fas fa-check-circle';
-                    toast.className = 'toast success show';
-                } else if (type === 'error') {
-                    icon.className = 'fas fa-exclamation-circle';
-                    toast.className = 'toast error show';
-                } else {
-                    toast.className = 'toast show';
-                }
-                
-                // Show toast
-                setTimeout(() => toast.classList.add('show'), 10);
-                
-                // Hide after 3 seconds
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
-            },
-            
+
             // --- Requests Logic ---
             handleReqSearch() {
                 this.data.reqSearchTerm = document.getElementById('reqSearchInput').value.toLowerCase();
                 this.renderRequests();
             },
-            
+
             renderRequests() {
                 const tbody = document.getElementById('requestsBody');
                 if(this.data.requests.length === 0) {
@@ -2390,84 +2233,113 @@
                     </tr>`;
                 }).join('');
             },
-            
+
             openRequestModal() {
                 const sel = document.getElementById('reqEmpSelect');
                 sel.innerHTML = this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-                document.getElementById('reqStart').value = '';
+                
+                // Defaults
+                document.getElementById('reqType').value = 'paid';
                 document.getElementById('reqDuration').value = 1;
-                document.getElementById('reqReturnDisplay').value = '';
-                document.getElementById('reqReason').value = '';
+                document.getElementById('reqStart').valueAsDate = new Date();
+                this.calcReturnDate();
                 document.getElementById('requestModal').classList.add('active');
             },
-            
+
             calculateReturnDate() {
                 const startStr = document.getElementById('reqStart').value;
                 const duration = parseInt(document.getElementById('reqDuration').value) || 0;
+                
                 if(startStr && duration > 0) {
-                    const start = new Date(startStr + 'T00:00:00');
-                    const end = new Date(start);
-                    end.setDate(start.getDate() + duration);
-                    document.getElementById('reqEndCalc').value = end.toISOString().split('T')[0];
-                    document.getElementById('reqReturnDisplay').value = end.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    const start = new Date(startStr);
+                    const returnDate = new Date(start);
+                    returnDate.setDate(start.getDate() + duration);
+                    document.getElementById('reqEndCalc').value = returnDate.toISOString().split('T')[0];
+                    document.getElementById('reqReturnDisplay').value = returnDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
                 } else {
                     document.getElementById('reqReturnDisplay').value = '';
                     document.getElementById('reqEndCalc').value = '';
                 }
             },
-            
+
             submitRequest() {
                 const empId = document.getElementById('reqEmpSelect').value;
                 const type = document.getElementById('reqType').value;
                 const start = document.getElementById('reqStart').value;
-                const end = document.getElementById('reqEndCalc').value;
-                const duration = document.getElementById('reqDuration').value;
+                const duration = parseInt(document.getElementById('reqDuration').value);
+                const returnStr = document.getElementById('reqEndCalc').value;
                 const reason = document.getElementById('reqReason').value;
-                if(!start || !end) return this.showToast('Invalid dates', 'error');
-                
-                const req = {
+
+                if(!empId || !start || !duration) { this.toast('Missing Details', 'error'); return; }
+
+                const emp = this.data.employees.find(e => e.id == empId);
+                const newReq = {
                     id: Date.now(),
                     empId: parseInt(empId),
-                    type, startDate: start, endDate: end, duration, reason, status: 'pending'
+                    empName: emp.name,
+                    type: type,
+                    startDate: start,
+                    endDate: returnStr,
+                    duration: duration,
+                    reason: reason,
+                    status: 'pending'
                 };
-                this.data.requests.push(req);
-                this.saveData(); this.renderRequests(); this.closeModals();
-                this.showToast('Request Submitted', 'success');
+
+                this.data.requests.push(newReq);
+                this.saveData();
+                this.renderRequests();
+                this.closeModals();
+                this.toast('Request Submitted', 'success');
             },
-            
-            handleRequest(reqId, status) {
-                const req = this.data.requests.find(r => r.id == reqId);
-                if(!req) return;
-                req.status = status;
-                if(status === 'approved') this.applyLeaveToAttendance(req);
-                this.saveData(); this.renderRequests(); this.renderTable(); this.renderSummary();
-                this.showToast(`Request ${status}`, 'success');
-            },
-            
-            applyLeaveToAttendance(req) {
-                const sDate = new Date(req.startDate + 'T00:00:00');
-                const eDate = new Date(req.endDate + 'T00:00:00');
-                const iter = new Date(sDate);
-                while(iter <= eDate) {
-                    const day = iter.getDate();
-                    const month = iter.getMonth();
-                    const year = iter.getFullYear();
-                    const k = `${year}_${month}`;
+
+            handleRequest(id, action) {
+                // Action: 'approve' or 'reject'
+                const reqIdx = this.data.requests.findIndex(l => l.id === id);
+                if(reqIdx === -1) return;
+                
+                const req = this.data.requests[reqIdx];
+                
+                if(action === 'approve') {
+                    req.status = 'approved';
                     
-                    if(!this.data.attendance[k]) this.data.attendance[k] = {};
-                    if(!this.data.attendance[k][req.empId]) this.data.attendance[k][req.empId] = {};
-                    this.data.attendance[k][req.empId][day] = {status: req.type, hours: 0};
-                    iter.setDate(iter.getDate() + 1);
+                    // --- THE CORE AUTOMATIC UPDATE FEATURE ---
+                    const startDate = new Date(req.startDate);
+                    const returnDate = new Date(req.endDate);
+                    
+                    // Loop through each day of leave
+                    let loopDate = new Date(startDate);
+                    while (loopDate < returnDate) {
+                        const y = loopDate.getFullYear();
+                        const m = loopDate.getMonth();
+                        const d = loopDate.getDate();
+
+                        const key = `${y}_${m}`;
+                        if(!this.data.attendance[key]) this.data.attendance[key] = {};
+                        if(!this.data.attendance[key][req.empId]) this.data.attendance[key][req.empId] = {};
+
+                        // Write Status
+                        const status = (req.type === 'paid') ? 'vacation' : 'absent'; // Paid = Vacation, Unpaid = Absent (or 'Unpaid Leave')
+                        // Note: If you want Unpaid to show as 'U', change css for 'status-unpaid' or logic in renderTable.
+                        // We use 'absent' (A) standard code for both, but visual distinction comes from color.
+                        
+                        this.data.attendance[key][req.empId][d] = { status: status, hours: 0 };
+
+                        loopDate.setDate(loopDate.getDate() + 1);
+                    }
+                    this.toast('Request Approved & Attendance Updated', 'success');
+                } else {
+                    req.status = 'rejected';
+                    this.toast('Request Rejected', 'error');
                 }
+
+                this.saveData();
+                this.renderRequests();
+                this.renderTable(); // Refresh attendance log to show changes
             },
-            
+
             // --- Schedule Logic ---
             renderSchedule() {
                 const tbody = document.getElementById('scheduleBody');
-                if(this.data.employees.length === 0) { 
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Add employees first</td></tr>'; 
-                    return; 
-                }
                 tbody.innerHTML = this.data.employees.map(emp => {
                     const empSch = this.data.schedule[emp.id] || {};
                     let cells = '';
@@ -2475,59 +2347,73 @@
                     days.forEach((dayName, idx) => {
                         const shift = empSch[idx];
                         let html = `<div class="shift-cell" onclick="app.openShiftModal(${emp.id}, ${idx}, '${dayName}')">`;
-                        if(!shift || shift.off) { html += `<span class="off-day">Off</span>`; }
+                        if(!shift || shift.off) { html += `<span class="off-day">💥 Off</span>`; }
                         else {
                             html += `<span class="shift-time">${this.formatTime(shift.s1)} - ${this.formatTime(shift.e1)}</span>`;
-                            if(shift.s2 && shift.e2) html += `<span class="split-sep">/</span><span class="shift-time">${this.formatTime(shift.s2)} - ${this.formatTime(shift.e2)}</span>`;
+                            if(shift.s2 && shift.e2) {
+                                html += `<span class="split-sep">/</span><span class="shift-time">${this.formatTime(shift.s2)} - ${this.formatTime(shift.e2)}</span>`;
+                            }
                         }
                         html += `</div>`;
                         cells += `<td>${html}</td>`;
                     });
+
                     return `<tr>
                         <td>
                             <div class="emp-cell" onclick="app.openEmployeeModal(${emp.id})">
                                 <img src="${emp.photo || 'https://via.placeholder.com/36'}" class="emp-avatar">
-                                <div class="emp-info"><span class="emp-name">${emp.name}</span><span class="emp-meta">${emp.jobNumber||'N/A'}</span></div>
+                                <div class="emp-info">
+                                    <span class="emp-name">${emp.name}</span>
+                                    <span class="emp-meta">${emp.jobNumber || 'N/A'}</span>
+                                </div>
                             </div>
                         </td>${cells}</tr>`;
                 }).join('');
             },
-            
+
             formatTime(time24) {
                 if(!time24) return "";
                 const [h, m] = time24.split(':');
-                return `${parseInt(h)%12||12}:${m} ${parseInt(h)>=12?'PM':'AM'}`;
+                const hour = parseInt(h);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const h12 = hour % 12 || 12;
+                return `${h12}:${m} ${ampm}`;
             },
-            
+
             openShiftModal(empId, dayIdx, dayName) {
                 const emp = this.data.employees.find(e => e.id === empId);
-                const shift = this.data.schedule[emp.id]?.[dayIdx];
+                const shift = this.data.schedule[emp.id] && this.data.schedule[emp.id][dayIdx];
+                
                 document.getElementById('shiftEmpName').value = emp.name;
                 document.getElementById('shiftDayName').value = dayName;
                 document.getElementById('shiftModal').dataset.empId = empId;
                 document.getElementById('shiftModal').dataset.dayIdx = dayIdx;
-                if(shift && shift.off) document.getElementById('shiftOffDay').checked = true;
-                else {
+
+                if(shift && shift.off) {
+                    document.getElementById('shiftOffDay').checked = true;
+                    this.toggleShiftInputs();
+                } else {
                     document.getElementById('shiftOffDay').checked = false;
-                    document.getElementById('shiftStart1').value = shift?.s1 || "";
-                    document.getElementById('shiftEnd1').value = shift?.e1 || "";
-                    document.getElementById('shiftStart2').value = shift?.s2 || "";
-                    document.getElementById('shiftEnd2').value = shift?.e2 || "";
+                    document.getElementById('shiftStart1').value = shift ? shift.s1 : "";
+                    document.getElementById('shiftEnd1').value = shift ? shift.e1 : "";
+                    document.getElementById('shiftStart2').value = shift ? (shift.s2 || "") : "";
+                    document.getElementById('shiftEnd2').value = shift ? (shift.e2 || "") : "";
+                    this.toggleShiftInputs();
                 }
-                this.toggleShiftInputs();
                 document.getElementById('shiftModal').classList.add('active');
             },
-            
+
             toggleShiftInputs() {
                 const isOff = document.getElementById('shiftOffDay').checked;
                 document.getElementById('primaryShiftGroup').style.display = isOff ? 'none' : 'grid';
                 document.getElementById('secondaryShiftGroup').style.display = isOff ? 'none' : 'block';
             },
-            
+
             saveShift(isClear) {
                 const empId = document.getElementById('shiftModal').dataset.empId;
                 const dayIdx = parseInt(document.getElementById('shiftModal').dataset.dayIdx);
                 if(!this.data.schedule[empId]) this.data.schedule[empId] = {};
+
                 if(isClear || document.getElementById('shiftOffDay').checked) {
                     this.data.schedule[empId][dayIdx] = { off: true };
                 } else {
@@ -2535,29 +2421,30 @@
                     const e1 = document.getElementById('shiftEnd1').value;
                     const s2 = document.getElementById('shiftStart2').value;
                     const e2 = document.getElementById('shiftEnd2').value;
-                    if(!s1 || !e1) return this.showToast('Primary shift required', 'error');
+                    if(!s1 || !e1) { this.showToast('Primary shift required', 'error'); return; }
                     this.data.schedule[empId][dayIdx] = { s1, e1, s2, e2 };
                 }
-                this.saveData(); this.renderSchedule(); this.closeModals(); this.showToast('Schedule Updated', 'success');
+                this.saveData();
+                this.renderSchedule();
+                this.closeModals();
+                this.showToast('Schedule Updated', 'success');
             },
-            
+
             // --- Attendance Logic ---
             renderTable() {
                 const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
                 const tbody = document.getElementById('tableBody');
                 const thead = document.getElementById('tableHeader');
+                
                 let h = `<th>Employee Details</th>`;
                 for(let i=1; i<=daysInMonth; i++) {
                     const d = new Date(this.data.currentYear, this.data.currentMonth, i);
                     h += `<th style="min-width:40px;">${i}<br><span style="font-size:10px; opacity:0.7;">${d.toLocaleDateString('en-US',{weekday:'narrow'})}</span></th>`;
                 }
                 thead.innerHTML = h;
-                
-                const filtered = this.data.employees.filter(e => 
-                    e.name.toLowerCase().includes(this.data.searchTerm) || 
-                    (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm))
-                );
-                
+
+                const filtered = this.data.employees.filter(e => e.name.toLowerCase().includes(this.data.searchTerm) || (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm)));
+
                 tbody.innerHTML = filtered.map(emp => {
                     let worked=0, ot=0, cells='';
                     for(let i=1; i<=daysInMonth; i++) {
@@ -2568,18 +2455,20 @@
                                 content=att.hours; worked++;
                                 if(att.hours>9) { cls='status-overtime'; ot+=att.hours-9; }
                                 else cls='status-present';
-                            } else if(att.status==='weeklyoff') { content='W'; cls='status-weeklyoff'; }
-                            else if(att.status==='vacation') { content='V'; cls='status-vacation'; }
-                            else if(att.status==='unpaid') { content='U'; cls='status-unpaid'; }
+                            } else if(att.status==='vacation') { content='V'; cls='status-vacation'; }
                             else if(att.status==='sick') { content='S'; cls='status-sick'; }
+                            else if(att.status==='weeklyoff') { content='W'; cls='status-weeklyoff'; }
+                            else if(att.status==='unpaid') { content='U'; cls='status-unpaid'; } // Mapping for imported Unpaid
                             else if(att.status==='absent') { content='A'; cls='status-absent'; }
                         }
+                        // Standard Color Mapping for Screen
                         if(cls==='status-present') cls='background:#dcfce7; color:#166534';
                         if(cls==='status-overtime') cls='background:#cffafe; color:#0e7490; border:2px solid #06b6d4; font-weight:700;';
                         if(cls==='status-vacation') cls='background:#fef3c7; color:#92400e';
                         if(cls==='status-unpaid') cls='background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1';
                         if(cls==='status-sick') cls='background:#ede9fe; color:#5b21b6';
                         if(cls==='status-weeklyoff') cls='background:#dbeafe; color:#1e40af';
+
                         cells += `<td class="day-cell" style="${cls}" onclick="app.openAttendanceModal(${emp.id},${i})">${content}</td>`;
                     }
                     return `<tr>
@@ -2595,12 +2484,12 @@
                     </tr>`;
                 }).join('');
             },
-            
+
             getAttendance(id, day) {
                 const k = `${this.data.currentYear}_${this.data.currentMonth}`;
-                return (this.data.attendance[k]?.[id]?.[day]) || null;
+                return (this.data.attendance[k] && this.data.attendance[k][id] && this.data.attendance[k][id][day]) || null;
             },
-            
+
             openAttendanceModal(id, day) {
                 const e = this.data.employees.find(x=>x.id===id);
                 const a = this.getAttendance(id, day);
@@ -2612,9 +2501,11 @@
                 this.toggleHoursInput();
                 document.getElementById('attendanceModal').classList.add('active');
             },
+
             toggleHoursInput() {
-                document.getElementById('hoursGroup').style.display = (['present','overtime'].includes(document.getElementById('modalStatus').value)) ? 'block' : 'none';
+                document.getElementById('hoursGroup').style.display = (['present','overtime','unpaid'].includes(document.getElementById('modalStatus').value)) ? 'block' : 'none';
             },
+
             saveAttendance() {
                 const id = parseInt(document.getElementById('modalEmpId').value);
                 const day = parseInt(document.getElementById('modalDay').value);
@@ -2626,8 +2517,8 @@
                 this.data.attendance[k][id][day]={ status, hours };
                 this.saveData(); this.renderTable(); this.renderSummary(); this.closeModals(); this.showToast('Updated','success');
             },
-            
-            // --- Bulk & OT ---
+
+            // --- Bulk & OT (Simplified) ---
             openBulkModal() {
                 const s = document.getElementById('bulkEmpSelect');
                 s.innerHTML = '<option value="all">ALL</option>'+this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
@@ -2636,6 +2527,7 @@
                 document.getElementById('bulkEnd').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-${dim}`;
                 document.getElementById('bulkModal').classList.add('active');
             },
+
             applyBulkAction() {
                 const eid = document.getElementById('bulkEmpSelect').value;
                 const status = document.getElementById('bulkStatus').value;
@@ -2658,6 +2550,7 @@
                 }
                 this.saveData(); this.renderTable(); this.renderSummary(); this.closeModals(); this.showToast('Bulk Applied','success');
             },
+
             openOTModal() {
                 const s = document.getElementById('otEmpSelect');
                 s.innerHTML = '<option value="all">ALL</option>'+this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
@@ -2666,13 +2559,10 @@
                 document.getElementById('otEnd').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-${dim}`;
                 document.getElementById('otModal').classList.add('active');
             },
-            toggleOTActionUI() {
-                document.getElementById('otValueLabel').innerText = document.getElementById('otAction').value==='add'?'Extra Hours':'Total Hours';
-            },
+
             applyQuickOT() {
                 const eid = document.getElementById('otEmpSelect').value;
                 const val = parseFloat(document.getElementById('otHours').value);
-                const act = document.getElementById('otAction').value;
                 const start = new Date(document.getElementById('otStart').value);
                 const end = new Date(document.getElementById('otEnd').value);
                 const targets = eid==='all' ? this.data.employees : this.data.employees.filter(e=>e.id==eid);
@@ -2686,7 +2576,7 @@
                             if(!this.data.attendance[k][e.id]) this.data.attendance[k][e.id]={};
                             const curr = this.data.attendance[k][e.id][day];
                             if(!curr || curr.status==='present'||curr.status==='overtime') {
-                                let h = act==='add' ? ((curr?curr.hours:9)+val) : val;
+                                let h = ((curr?curr.hours:9)+val);
                                 this.data.attendance[k][e.id][day]={status:'present', hours:h};
                             }
                         });
@@ -2695,7 +2585,7 @@
                 }
                 this.saveData(); this.renderTable(); this.renderSummary(); this.closeModals(); this.showToast('OT Updated','success');
             },
-            
+
             // --- Utils ---
             loadData() {
                 try {
@@ -2713,17 +2603,20 @@
                     location.reload();
                 }
             },
+
             saveData() {
                 localStorage.setItem(CONFIG.storageKeys.employees, JSON.stringify(this.data.employees));
                 localStorage.setItem(CONFIG.storageKeys.data, JSON.stringify(this.data.attendance));
                 localStorage.setItem(CONFIG.storageKeys.schedule, JSON.stringify(this.data.schedule));
                 localStorage.setItem(CONFIG.storageKeys.requests, JSON.stringify(this.data.requests));
             },
+
             toggleTheme() {
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem(CONFIG.storageKeys.theme, document.body.classList.contains('dark-mode') ? 'dark' : 'light');
                 document.getElementById('themeIcon').className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
             },
+
             loadTheme() { 
                 const theme = localStorage.getItem(CONFIG.storageKeys.theme);
                 if(theme === 'dark') { 
@@ -2731,16 +2624,19 @@
                     document.getElementById('themeIcon').className = 'fas fa-sun'; 
                 }
             },
+
             handleSearch() { 
                 this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); 
                 this.renderTable(); 
             },
+
             renderDateSelectors() {
                 const m = ["January","February","March","April","May","June","July","August","September","October","November","December"];
                 document.getElementById('monthSelect').innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
                 const y = [2024,2025,2026,2027,2028];
                 document.getElementById('yearSelect').innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
             },
+
             handleImageUpload(e) {
                 this.showLoading();
                 const f = e.target.files[0]; 
@@ -2765,9 +2661,11 @@
                     };
                 };
             },
+
             closeModals() { 
                 document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); 
             },
+
             startClock() { 
                 setInterval(() => document.getElementById('clock').innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),1000); 
             }
