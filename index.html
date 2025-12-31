@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Master v5.5 (Production Ready)</title>
+    <title>HR Master v5.6 (Fixed)</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -69,7 +69,7 @@
         .system-menu { position: relative; }
         .sys-btn { background: var(--surface); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
         .sys-dropdown { position: absolute; top: 100%; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 220px; box-shadow: var(--shadow-lg); display: none; flex-direction: column; padding: 5px; margin-top: 5px; z-index: 60; }
-        .system-menu:hover .sys-dropdown { display: flex; }
+        .sys-dropdown.show { display: flex; }
         .sys-item { padding: 10px; font-size: 13px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
         .sys-item:hover { background: var(--bg-body); }
         .sys-item i { width: 20px; text-align: center; color: var(--text-muted); }
@@ -152,6 +152,12 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .time-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
 
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border-left: 4px solid transparent; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-info h3 { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .stat-info p { font-size: 24px; font-weight: 700; margin-top: 4px; }
+
         /* Print Layout Styles */
         .print-header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .print-grid { display: grid; grid-template-columns: 180px 1fr; gap: 40px; }
@@ -176,15 +182,15 @@
         <div class="brand">
             <i class="fas fa-calendar-check"></i>
             <div>
-                <h1>HR Master <span>v5.5</span></h1>
-                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Production Ready</span>
+                <h1>HR Master <span>v5.6</span></h1>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Fixed & Stable</span>
             </div>
         </div>
         <div class="controls">
-            <!-- System Menu (New) -->
+            <!-- System Menu -->
             <div class="system-menu">
-                <button class="sys-btn"><i class="fas fa-cog"></i> System <i class="fas fa-caret-down" style="font-size:10px;"></i></button>
-                <div class="sys-dropdown">
+                <button class="sys-btn" onclick="app.toggleSystemMenu()"><i class="fas fa-cog"></i> System <i class="fas fa-caret-down" style="font-size:10px;"></i></button>
+                <div class="sys-dropdown" id="sysDropdown">
                     <div class="sys-item" onclick="app.downloadBackup()"><i class="fas fa-download"></i> Download Backup</div>
                     <label class="sys-item">
                         <i class="fas fa-upload"></i> Restore Backup
@@ -293,7 +299,6 @@
                         <h2 style="font-size:18px; font-weight:700;">Leave Requests</h2>
                     </div>
                     <div style="flex:1;"></div>
-                    <!-- Added Search for Requests -->
                     <div class="search-wrapper" style="width: 200px;">
                         <i class="fas fa-search"></i>
                         <input type="text" id="reqSearchInput" class="search-input" placeholder="Search..." onkeyup="app.handleReqSearch()">
@@ -531,7 +536,7 @@
 
     <script>
         const CONFIG = {
-            storageKeys: { employees: 'att_v55_employees', data: 'att_v55_data', schedule: 'att_v55_schedule', requests: 'att_v55_requests' },
+            storageKeys: { employees: 'att_v56_employees', data: 'att_v56_data', schedule: 'att_v56_schedule', requests: 'att_v56_requests' },
             statusColors: { present: '#dcfce7', overtime: '#cffafe', absent: '#fee2e2', vacation: '#fef3c7', unpaid: '#f1f5f9', sick: '#ede9fe', weeklyoff: '#dbeafe' }
         };
 
@@ -551,6 +556,13 @@
                 document.getElementById('monthSelect').addEventListener('change', (e) => { this.data.currentMonth = parseInt(e.target.value); this.renderTable(); });
                 document.getElementById('yearSelect').addEventListener('change', (e) => { this.data.currentYear = parseInt(e.target.value); this.renderTable(); });
                 document.getElementById('empPhotoInput').addEventListener('change', (e) => this.handleImageUpload(e));
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if(!e.target.closest('.system-menu')) {
+                        document.getElementById('sysDropdown').classList.remove('show');
+                    }
+                });
             },
 
             // --- View Switcher ---
@@ -573,7 +585,11 @@
                 }
             },
 
-            // --- System Backup/Restore ---
+            // --- System Menu Logic ---
+            toggleSystemMenu() {
+                document.getElementById('sysDropdown').classList.toggle('show');
+            },
+
             downloadBackup() {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data));
                 const downloadAnchorNode = document.createElement('a');
@@ -654,7 +670,7 @@
                 const id = document.getElementById('editEmpId').value;
                 const name = document.getElementById('empName').value.trim();
                 
-                if(!name) return this.toast('Name is required', 'error'); // Validation
+                if(!name) return this.toast('Name is required', 'error');
 
                 let finalPhoto = document.getElementById('empPhotoBase64').value;
 
