@@ -86,6 +86,7 @@
         .btn-success { background: var(--success); }
         .btn-warning { background: var(--warning); color: white; }
         .btn-danger { background: var(--secondary); }
+        .btn-info { background: #8b5cf6; }
 
         /* Table */
         .table-wrapper { flex: 1; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: auto; position: relative; border: 1px solid var(--border); }
@@ -154,7 +155,8 @@
             .no-print { display: none !important; }
             .day-cell { border: 1px solid #000 !important; color: black !important; background: white !important; }
         }
-        #printEmployeeArea { display: none; }
+        #printEmployeeArea { display: none; background: white; color: black; }
+        
         .print-header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .print-grid { display: grid; grid-template-columns: 180px 1fr; gap: 40px; }
         .print-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; }
@@ -168,6 +170,13 @@
         .ot-box h5 { font-size: 12px; color: #92400e; text-transform: uppercase; margin-bottom: 5px; }
         .ot-box p { font-size: 20px; font-weight: 700; color: #b45309; }
         .ot-highlight { border-color: #f59e0b; background: #fffbeb; }
+
+        /* Detailed Report Table Style */
+        .report-table-container { margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .report-table { width: 100%; border-collapse: collapse; }
+        .report-table th, .report-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
+        .report-table th { background: #f9fafb; font-weight: 700; text-transform: uppercase; }
+        .report-table tr:nth-child(even) { background: #f9fafb; }
     </style>
 </head>
 <body>
@@ -224,13 +233,14 @@
                 <div class="legend" id="legendContainer"></div>
                 
                 <div class="actions">
-                    <!-- MANAGE OT BUTTON -->
-                    <button class="btn btn-warning" onclick="app.openOTModal()"><i class="fas fa-clock"></i> Edit / Add OT</button>
-                    
+                    <!-- NEW: Employee Report Button -->
+                    <button class="btn btn-info" onclick="app.openReportModal()"><i class="fas fa-file-alt"></i> Employee Report</button>
+
+                    <button class="btn btn-warning" onclick="app.openOTModal()"><i class="fas fa-clock"></i> Edit OT</button>
                     <button class="btn btn-secondary" onclick="app.openBulkModal()"><i class="fas fa-calendar-alt"></i> Bulk</button>
-                    <button class="btn btn-primary" onclick="app.openEmployeeModal()"><i class="fas fa-user-plus"></i> Employee</button>
+                    <button class="btn btn-primary" onclick="app.openEmployeeModal()"><i class="fas fa-user-plus"></i> Add Emp</button>
                     <button class="btn btn-success" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export</button>
-                    <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> Report</button>
+                    <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> View</button>
                 </div>
             </div>
         </div>
@@ -307,6 +317,40 @@
                 <button class="btn btn-danger" id="deleteEmpBtn" style="display: none;" onclick="app.deleteEmployee()">Delete File</button>
                 <button class="btn btn-secondary" onclick="app.printEmployeeProfile()"><i class="fas fa-print"></i> Reprint Profile</button>
                 <button class="btn btn-primary" onclick="app.saveEmployee()">Save File</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Report Selection Modal -->
+    <div class="modal no-print" id="reportModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title" style="color: var(--primary);"><i class="fas fa-file-invoice"></i> Generate Report</div>
+                <button class="close-modal" onclick="app.closeModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Employee</label>
+                    <select id="reportEmpSelect" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Report Period</label>
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
+                        <select id="reportMonth" class="form-select"></select>
+                        <select id="reportYear" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <p style="font-size:12px; color:var(--text-muted);">Choose your export format:</p>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="btn btn-primary" onclick="app.printDetailedReport()">
+                            <i class="fas fa-print"></i> Print (PDF)
+                        </button>
+                        <button class="btn btn-success" onclick="app.downloadEmpCSV()">
+                            <i class="fas fa-file-csv"></i> CSV Data
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -449,11 +493,11 @@
         };
 
         const app = {
-            data: { employees: [], attendance: {}, currentMonth: new Date().getMonth(), currentYear: 2025, searchTerm: '' }, // Default to 2025 as per user focus
+            data: { employees: [], attendance: {}, currentMonth: new Date().getMonth(), currentYear: 2025, searchTerm: '' }, 
 
             init() {
                 this.loadData();
-                this.renderDateSelectors(); // Will now load 2025-2028 range
+                this.renderDateSelectors(); 
                 this.renderLegend();
                 this.renderStats();
                 this.renderTable();
@@ -477,20 +521,202 @@
             },
             handleSearch() { this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); this.renderTable(); },
 
-            // --- UPDATED: OT Modal Logic (Add vs Edit) ---
+            // --- NEW: Report Modal Logic ---
+            openReportModal() {
+                const sel = document.getElementById('reportEmpSelect');
+                sel.innerHTML = this.data.employees.map(e => `<option value="${e.id}">${e.name} (${e.jobNumber})</option>`).join('');
+                
+                // Set Month/Year Selects for Report Modal
+                const rMonth = document.getElementById('reportMonth');
+                const rYear = document.getElementById('reportYear');
+                const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                
+                rMonth.innerHTML = months.map((m, i) => `<option value="${i}" ${i === this.data.currentMonth ? 'selected' : ''}>${m}</option>`).join('');
+                const years = [2024, 2025, 2026, 2027, 2028];
+                rYear.innerHTML = years.map(y => `<option value="${y}" ${y === this.data.currentYear ? 'selected' : ''}>${y}</option>`).join('');
+
+                document.getElementById('reportModal').classList.add('active');
+            },
+
+            downloadEmpCSV() {
+                const empId = document.getElementById('reportEmpSelect').value;
+                const emp = this.data.employees.find(e => e.id == empId);
+                const month = parseInt(document.getElementById('reportMonth').value);
+                const year = parseInt(document.getElementById('reportYear').value);
+                
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const monthName = document.getElementById('reportMonth').options[month].text;
+                const key = `${year}_${month}`;
+                const monthData = this.data.attendance[key] && this.data.attendance[key][empId] ? this.data.attendance[key][empId] : {};
+
+                let csv = `Employee Report: ${emp.name}\n`;
+                csv += `ID: ${emp.jobNumber}, Period: ${monthName} ${year}\n\n`;
+                csv += `Date,Day,Status,Hours (H)\n`;
+
+                for(let d=1; d<=daysInMonth; d++) {
+                    const att = monthData[d];
+                    const dateObj = new Date(year, month, d);
+                    const dayName = dateObj.toLocaleDateString('en-US', {weekday: 'long'});
+                    
+                    let status = "Unfilled";
+                    let hours = 0;
+
+                    if(!att && emp.weeklyOff && emp.weeklyOff != '-1') {
+                         if(dateObj.getDay() == emp.weeklyOff) { status = "Weekly Off"; }
+                    }
+
+                    if(att) {
+                        status = att.status.charAt(0).toUpperCase() + att.status.slice(1);
+                        hours = att.hours || 0;
+                    } else if (status === "Unfilled") {
+                        hours = "-";
+                    }
+
+                    csv += `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')},${dayName},${status},${hours}\n`;
+                }
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Report_${emp.name}_${year}_${month+1}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                this.closeModals();
+                this.toast('CSV Downloaded', 'success');
+            },
+
+            printDetailedReport() {
+                const empId = document.getElementById('reportEmpSelect').value;
+                const emp = this.data.employees.find(e => e.id == empId);
+                const month = parseInt(document.getElementById('reportMonth').value);
+                const year = parseInt(document.getElementById('reportYear').value);
+                const monthName = document.getElementById('reportMonth').options[month].text;
+
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const key = `${year}_${month}`;
+                const monthData = this.data.attendance[key] && this.data.attendance[key][empId] ? this.data.attendance[key][empId] : {};
+
+                let totalHours = 0, totalOT = 0, daysPresent = 0;
+
+                // Build Table Rows
+                let tableRows = '';
+                for(let d=1; d<=daysInMonth; d++) {
+                    const att = monthData[d];
+                    const dateObj = new Date(year, month, d);
+                    const dayName = dateObj.toLocaleDateString('en-US', {weekday: 'short'});
+                    
+                    let status = "-";
+                    let hours = "-";
+                    let rowStyle = "";
+
+                    if(!att && emp.weeklyOff && emp.weeklyOff != '-1') {
+                         if(dateObj.getDay() == emp.weeklyOff) { status = "Weekly Off"; rowStyle="background:#f3f4f6; color:#666;"; }
+                    }
+
+                    if(att) {
+                        if(att.status === 'present' || att.status === 'overtime') {
+                            status = "Present";
+                            hours = att.hours;
+                            daysPresent++;
+                            totalHours += att.hours;
+                            if(att.hours > 9) {
+                                totalOT += (att.hours - 9);
+                                status += " (OT)";
+                                rowStyle = "color:#0e7490; font-weight:600;";
+                            }
+                        } else {
+                            status = att.status.charAt(0).toUpperCase() + att.status.slice(1);
+                        }
+                    }
+
+                    tableRows += `<tr style="${rowStyle}">
+                        <td>${d}</td>
+                        <td>${dayName}</td>
+                        <td>${status}</td>
+                        <td style="text-align:right;">${hours}</td>
+                    </tr>`;
+                }
+
+                const printArea = document.getElementById('printEmployeeArea');
+                printArea.innerHTML = `
+                    <div class="print-header">
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">DETAILED ATTENDANCE REPORT</div>
+                        <div style="font-size: 14px; color: #666;">Date: ${new Date().toLocaleDateString()}</div>
+                    </div>
+                    
+                    <div class="print-grid">
+                        <div>
+                            <div style="text-align:center;">
+                                <img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo" style="margin:0 auto;">
+                            </div>
+                        </div>
+                        <div>
+                            <h2 style="color:#333; margin-bottom:5px;">${emp.name}</h2>
+                            <p style="font-size:14px; color:#555; margin-bottom:20px;">
+                                <strong>ID:</strong> ${emp.jobNumber || 'N/A'} &nbsp;|&nbsp; 
+                                <strong>Period:</strong> ${monthName} ${year}
+                            </p>
+
+                            <div class="ot-stats" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                                <div class="ot-box" style="background:#f0f9ff; border-color:#bae6fd;">
+                                    <h5 style="color:#0369a1;">Days Worked</h5>
+                                    <p style="color:#0284c7;">${daysPresent}</p>
+                                </div>
+                                <div class="ot-box">
+                                    <h5>Total Hrs</h5>
+                                    <p>${totalHours}</p>
+                                </div>
+                                <div class="ot-box ot-highlight">
+                                    <h5>OT Hrs</h5>
+                                    <p>+${totalOT}</p>
+                                </div>
+                                <div class="ot-box" style="background:#fff1f2; border-color:#fecdd3;">
+                                    <h5 style="color:#e11d48;">Avg/Day</h5>
+                                    <p>${daysPresent > 0 ? (totalHours/daysPresent).toFixed(1) : 0}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">Day</th>
+                                    <th style="width: 100px;">Weekday</th>
+                                    <th>Status</th>
+                                    <th style="width: 80px; text-align:right;">Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #777;">
+                        <div>HR Master v5.0 Automated Report</div>
+                        <div>Page 1 of 1</div>
+                    </div>
+                `;
+                
+                this.closeModals();
+                window.print();
+            },
+
+            // --- OT Modal Logic (Add vs Edit) ---
             openOTModal() {
                 const sel = document.getElementById('otEmpSelect');
                 sel.innerHTML = '<option value="all">ALL EMPLOYEES</option>' + this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
                 
-                // Set dates to current view
                 const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
                 document.getElementById('otStart').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-01`;
                 document.getElementById('otEnd').value = `${this.data.currentYear}-${String(this.data.currentMonth + 1).padStart(2, '0')}-${daysInMonth}`;
                 
-                // Reset Action
                 document.getElementById('otAction').value = 'add';
                 this.toggleOTActionUI();
-
                 document.getElementById('otModal').classList.add('active');
             },
 
@@ -532,7 +758,6 @@
                             if(!this.data.attendance[key][emp.id]) this.data.attendance[key][emp.id] = {};
                             const existing = this.data.attendance[key][emp.id][day];
                             
-                            // Logic: Only apply if Present or Empty (don't change Sick/Vacation to OT usually)
                             if(!existing || existing.status === 'present' || existing.status === 'overtime') {
                                 let finalHours = 9;
                                 if(action === 'add') finalHours = (existing ? existing.hours : 9) + otValue;
@@ -550,7 +775,6 @@
                 this.toast('OT Updated', 'success');
             },
 
-            // --- UPDATED: Date Selectors (2025-2028) ---
             renderDateSelectors() {
                 const mSelect = document.getElementById('monthSelect');
                 const ySelect = document.getElementById('yearSelect');
@@ -558,18 +782,15 @@
                 
                 mSelect.innerHTML = months.map((m, i) => `<option value="${i}" ${i === this.data.currentMonth ? 'selected' : ''}>${m}</option>`).join('');
                 
-                // Hardcode Year Range 2025 to 2028 (Plus 2024 for reference)
                 const years = [2024, 2025, 2026, 2027, 2028];
                 ySelect.innerHTML = years.map(y => `<option value="${y}" ${y === this.data.currentYear ? 'selected' : ''}>${y}</option>`).join('');
             },
 
-            // --- Print Profile (Reprint) ---
             printEmployeeProfile() {
                 const id = document.getElementById('editEmpId').value;
                 const emp = id ? this.data.employees.find(e => e.id == id) : this.getFormValues();
                 if(!emp) return;
 
-                // Get Year/Month from Header Dropdown (Reprint Logic)
                 const year = parseInt(document.getElementById('yearSelect').value);
                 const monthIndex = parseInt(document.getElementById('monthSelect').value);
                 const monthName = document.getElementById('monthSelect').options[monthIndex].text;
@@ -578,26 +799,16 @@
                 const attKey = `${year}_${monthIndex}`;
                 const monthData = this.data.attendance[attKey] ? this.data.attendance[attKey][emp.id] : {};
 
-                let totalHours = 0;
-                let totalOT = 0;
-                let daysPresent = 0;
-                let daysVacation = 0;
-                let daysSick = 0;
+                let totalHours = 0, totalOT = 0, daysPresent = 0, daysVacation = 0, daysSick = 0;
 
                 for(let d=1; d<=daysInMonth; d++) {
                     const dayAtt = monthData ? monthData[d] : null;
                     if(dayAtt) {
                         if(dayAtt.status === 'present' || dayAtt.status === 'overtime') {
-                            daysPresent++;
-                            totalHours += dayAtt.hours;
-                            if(dayAtt.hours > 9) {
-                                totalOT += (dayAtt.hours - 9);
-                            }
-                        } else if (dayAtt.status === 'vacation') {
-                            daysVacation++;
-                        } else if (dayAtt.status === 'sick') {
-                            daysSick++;
-                        }
+                            daysPresent++; totalHours += dayAtt.hours;
+                            if(dayAtt.hours > 9) totalOT += (dayAtt.hours - 9);
+                        } else if (dayAtt.status === 'vacation') { daysVacation++; } 
+                        else if (dayAtt.status === 'sick') { daysSick++; }
                     }
                 }
 
@@ -631,18 +842,9 @@
                             <div class="print-section">
                                 <h4 style="color: #b45309;">Attendance Summary (${monthName} ${year})</h4>
                                 <div class="ot-stats">
-                                    <div class="ot-box">
-                                        <h5>Days Present</h5>
-                                        <p>${daysPresent}</p>
-                                    </div>
-                                    <div class="ot-box ot-highlight">
-                                        <h5>Total OT Hours</h5>
-                                        <p>${totalOT > 0 ? '+' + totalOT : '0'}</p>
-                                    </div>
-                                    <div class="ot-box">
-                                        <h5>Total Worked</h5>
-                                        <p>${totalHours} Hrs</p>
-                                    </div>
+                                    <div class="ot-box"><h5>Days Present</h5><p>${daysPresent}</p></div>
+                                    <div class="ot-box ot-highlight"><h5>Total OT Hours</h5><p>${totalOT > 0 ? '+' + totalOT : '0'}</p></div>
+                                    <div class="ot-box"><h5>Total Worked</h5><p>${totalHours} Hrs</p></div>
                                 </div>
                                 <div style="margin-top: 10px; font-size: 12px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div><i class="fas fa-plane" style="color:#f59e0b"></i> Vacation: ${daysVacation} days</div>
@@ -702,14 +904,9 @@
 
             checkDocumentExpirations() {
                 const today = new Date();
-                const alerts = [];
-                let hasCritical = false;
+                const alerts = []; let hasCritical = false;
                 this.data.employees.forEach(emp => {
-                    const docs = [
-                        { type: 'Passport', date: emp.passportExp },
-                        { type: 'EID', date: emp.eidExp },
-                        { type: 'Insurance', date: emp.insuranceExp }
-                    ];
+                    const docs = [{ type: 'Passport', date: emp.passportExp }, { type: 'EID', date: emp.eidExp }, { type: 'Insurance', date: emp.insuranceExp }];
                     docs.forEach(doc => {
                         if (doc.date) {
                             const expiry = new Date(doc.date);
@@ -771,9 +968,7 @@
                 const filteredEmps = this.data.employees.filter(e => e.name.toLowerCase().includes(this.data.searchTerm) || (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm)));
 
                 tbody.innerHTML = filteredEmps.map(emp => {
-                    let workedDays = 0, otHours = 0;
-                    let cells = '';
-
+                    let workedDays = 0, otHours = 0; let cells = '';
                     for(let d=1; d<=daysInMonth; d++) {
                         const att = this.getAttendance(emp.id, d);
                         let cellContent = '-', cellClass = 'status-unfilled';
@@ -788,18 +983,13 @@
                             const cfg = CONFIG.statusColors[att.status];
                             cellClass = cfg.class;
                             if(att.status === 'present' || att.status === 'overtime') {
-                                cellContent = att.hours;
-                                workedDays++;
-                                if(att.hours > 9) {
-                                    cellClass = 'status-overtime';
-                                    otHours += (att.hours - 9);
-                                }
+                                cellContent = att.hours; workedDays++;
+                                if(att.hours > 9) { cellClass = 'status-overtime'; otHours += (att.hours - 9); }
                             } else if (att.status === 'weeklyoff') cellContent = 'W';
                             else if (att.status === 'vacation') cellContent = 'V';
                             else if (att.status === 'sick') cellContent = 'S';
                             else cellContent = 'E';
                         }
-
                         cells += `<td class="day-cell ${cellClass} ${isToday ? 'is-today' : ''}" onclick="app.openAttendanceModal(${emp.id}, ${d})">${cellContent}</td>`;
                     }
 
