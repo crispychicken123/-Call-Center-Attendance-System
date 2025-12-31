@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Master v5.6 (Fixed)</title>
+    <title>HR Master v5.7 (Stable)</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,7 +48,7 @@
             th:first-child, td:first-child { position: static; }
             .no-print { display: none !important; }
             .agent-instructions, .status-badge { display: none; }
-            .day-cell { border: 1px solid #000 !important; color: black !important; background: white !important; }
+            .day-cell { border:1px solid #000 !important; color: black !important; background: white !important; }
         }
         #printEmployeeArea { display: none; background: white; color: black; }
 
@@ -182,7 +182,7 @@
         <div class="brand">
             <i class="fas fa-calendar-check"></i>
             <div>
-                <h1>HR Master <span>v5.6</span></h1>
+                <h1>HR Master <span>v5.7</span></h1>
                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Fixed & Stable</span>
             </div>
         </div>
@@ -536,7 +536,7 @@
 
     <script>
         const CONFIG = {
-            storageKeys: { employees: 'att_v56_employees', data: 'att_v56_data', schedule: 'att_v56_schedule', requests: 'att_v56_requests' },
+            storageKeys: { employees: 'att_v57_employees', data: 'att_v57_data', schedule: 'att_v57_schedule', requests: 'att_v57_requests' },
             statusColors: { present: '#dcfce7', overtime: '#cffafe', absent: '#fee2e2', vacation: '#fef3c7', unpaid: '#f1f5f9', sick: '#ede9fe', weeklyoff: '#dbeafe' }
         };
 
@@ -596,7 +596,7 @@
                 downloadAnchorNode.setAttribute("href", dataStr);
                 const d = new Date();
                 downloadAnchorNode.setAttribute("download", `HR_Master_Backup_${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}.json`);
-                document.body.appendChild(downloadAnchorNode); // required for firefox
+                document.body.appendChild(downloadAnchorNode); 
                 downloadAnchorNode.click();
                 downloadAnchorNode.remove();
             },
@@ -746,14 +746,20 @@
                 if(!id) { this.toast('Save employee first', 'error'); return; }
                 const emp = this.data.employees.find(e => e.id == id);
                 if(!emp) { this.toast('Employee not found', 'error'); return; }
+                
                 const printArea = document.getElementById('printEmployeeArea');
+                // Force visibility before printing to avoid blank page
+                printArea.style.display = 'block';
+                
                 printArea.innerHTML = `
                     <div class="print-header"><div style="font-size: 24px; font-weight: 700; color: #333;">EMPLOYEE PROFILE</div><div>Date: ${new Date().toLocaleDateString()}</div></div>
                     <div class="print-grid"><div><img src="${emp.photo || 'https://via.placeholder.com/150'}" class="print-photo"></div>
                     <div><h2>${emp.name}</h2><p><strong>ID:</strong> ${emp.jobNumber}</p><div class="print-section"><div class="print-row"><span class="print-label">Phone:</span>${emp.phone||'-'}</div><div class="print-row"><span class="print-label">Nationality:</span>${emp.nationality||'-'}</div></div></div></div>
                     <div class="print-section"><h4>Documents</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"><div class="print-row"><span class="print-label">Passport:</span>${emp.passportNo||'-'} (${emp.passportExp||'-'})</div><div class="print-row"><span class="print-label">EID:</span>${emp.eidNo||'-'} (${emp.eidExp||'-'})</div></div></div>
                 `;
-                window.print();
+                
+                // Small delay ensures the browser registers the display change
+                setTimeout(() => window.print(), 500);
             },
 
             // --- Requests Logic ---
@@ -1113,10 +1119,16 @@
 
             // --- Utils ---
             loadData() {
-                const e = localStorage.getItem(CONFIG.storageKeys.employees); if(e) this.data.employees = JSON.parse(e);
-                const a = localStorage.getItem(CONFIG.storageKeys.data); if(a) this.data.attendance = JSON.parse(a);
-                const s = localStorage.getItem(CONFIG.storageKeys.schedule); if(s) this.data.schedule = JSON.parse(s);
-                const r = localStorage.getItem(CONFIG.storageKeys.requests); if(r) this.data.requests = JSON.parse(r);
+                try {
+                    const e = localStorage.getItem(CONFIG.storageKeys.employees); if(e) this.data.employees = JSON.parse(e);
+                    const a = localStorage.getItem(CONFIG.storageKeys.data); if(a) this.data.attendance = JSON.parse(a);
+                    const s = localStorage.getItem(CONFIG.storageKeys.schedule); if(s) this.data.schedule = JSON.parse(s);
+                    const r = localStorage.getItem(CONFIG.storageKeys.requests); if(r) this.data.requests = JSON.parse(r);
+                } catch (err) {
+                    console.error("Data corrupted, resetting...", err);
+                    localStorage.clear();
+                    location.reload();
+                }
             },
             saveData() {
                 localStorage.setItem(CONFIG.storageKeys.employees, JSON.stringify(this.data.employees));
