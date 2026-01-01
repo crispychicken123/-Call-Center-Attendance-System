@@ -87,11 +87,10 @@
 
         /* --- ALERT BANNER --- */
         #globalAlerts {
-            display: none;
             background: #fffbeb;
             border-bottom: 1px solid #fcd34d;
             padding: 10px 20px;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 10px;
             font-size: 13px;
@@ -289,6 +288,12 @@
         body.rtl-mode .sys-dropdown {
             right: auto;
             left: 0; /* In Arabic (RTL), pop out to left (inside screen) */
+        }
+
+        /* RTL Table Headers Fix */
+        body.rtl-mode .thead th {
+            text-align: right;
+            padding-right: 20px;
         }
 
         /* --- LANGUAGE TOGGLE --- */
@@ -612,6 +617,18 @@
             background: #fee2e2; 
             color: #991b1b; 
         }
+        .status-error { 
+            background: #fecaca; 
+            color: #991b1b; 
+        }
+        .status-warn { 
+            background: #fef3c7; 
+            color: #92400e; 
+        }
+        .status-info { 
+            background: #dbeafe; 
+            color: #1e40af; 
+        }
 
         /* --- Enhanced Modals --- */
         .modal { 
@@ -777,6 +794,9 @@
         .toast.info {
             border-left-color: var(--primary);
         }
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
 
         /* Charts Container */
         .charts-container {
@@ -797,6 +817,31 @@
             font-weight: 600;
             margin-bottom: 15px;
             color: var(--text-main);
+        }
+
+        /* System Logs Styles */
+        .log-entry {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-right: 10px;
+        }
+        .log-level {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 10px;
+        }
+        .log-message {
+            flex: 1;
         }
     </style>
 </head>
@@ -840,7 +885,7 @@
 
             <!-- Language Toggle -->
             <button class="lang-btn" onclick="app.toggleLanguage()" id="langBtn">
-                <span id="langText">EN</span>
+                <span id="langText">عربي</span>
             </button>
 
             <!-- System Menu -->
@@ -849,6 +894,12 @@
                     <i class="fas fa-cog"></i> <i class="fas fa-ellipsis-v no-print"></i>
                 </button>
                 <div class="sys-dropdown" id="sysDropdown">
+                    <div class="sys-item" onclick="app.showSystemInfo()">
+                        <i class="fas fa-info-circle"></i> <span data-i18n="menu_system_info">System Info</span>
+                    </div>
+                    <div class="sys-item" onclick="app.showSystemLogs()">
+                        <i class="fas fa-clipboard-list"></i> <span data-i18n="menu_system_logs">System Logs</span>
+                    </div>
                     <div class="sys-item" onclick="app.downloadBackup()">
                         <i class="fas fa-download"></i> <span data-i18n="menu_backup">Download Backup</span>
                     </div>
@@ -1312,6 +1363,90 @@
         </div>
     </div>
 
+    <!-- 7. System Info Modal -->
+    <div class="modal no-print" id="systemInfoModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-info-circle"></i> <span>System Information</span>
+                </div>
+                <button class="close-modal" onclick="app.closeModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">HR Master v6.3</h3>
+                    <p style="color: var(--text-muted); font-size: 14px;">Interactive Attendance & Schedule Management System</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Version</label>
+                        <div class="form-input" style="background: var(--bg-body);">6.3.0</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Build Date</label>
+                        <div class="form-input" style="background: var(--bg-body);">2024</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Employees</label>
+                        <div class="form-input" style="background: var(--bg-body;" id="sysInfoEmpCount">0</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Requests</label>
+                        <div class="form-input" style="background: var(--bg-body;" id="sysInfoReqCount">0</div>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Storage Usage</label>
+                        <div class="form-input" style="background: var(--bg-body;" id="sysInfoStorage">Calculating...</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <h4 style="color: var(--text-main); margin-bottom: 10px;">Features:</h4>
+                    <ul style="color: var(--text-muted); font-size: 13px; padding-left: 20px;">
+                        <li>Multi-language Support (EN/AR)</li>
+                        <li>Dark/Light Mode</li>
+                        <li>Export to Excel/CSV</li>
+                        <li>Print Reports</li>
+                        <li>Interactive Charts</li>
+                        <li>Backup & Restore</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="app.closeModals()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. System Logs Modal -->
+    <div class="modal no-print" id="logsModal">
+        <div class="modal-card" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-clipboard-list"></i> <span>System Logs</span>
+                </div>
+                <button class="close-modal" onclick="app.closeModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width: 100%; font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 8px; text-align: left;">Time</th>
+                                <th style="padding: 8px; text-align: left;">Level</th>
+                                <th style="padding: 8px; text-align: left;">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="Logger.clear(); app.updateLogsDisplay();">Clear Logs</button>
+                <button class="btn btn-primary" onclick="app.closeModals()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle"></i>
@@ -1356,14 +1491,13 @@
                     col_no: "No",
                     title_weekly_schedule: "Weekly Master Schedule",
                     title_leave_requests: "Leave Requests",
-                    title_monthly_summary: "ملخص الحضور الفترة التاريخ",
+                    title_monthly_summary: "Attendance Summary Period",
                     btn_edit_ot: "Edit OT",
                     btn_bulk: "Bulk",
                     btn_add_emp: "Add Emp",
                     btn_print: "Print Schedule",
                     btn_export_excel: "Export Excel",
                     btn_export_csv: "Export CSV",
-                    btn_print: "Print / PDF",
                     btn_new_req: "New Request",
                     modal_edit_shift: "Edit Shift",
                     lbl_emp: "Employee",
@@ -1391,7 +1525,6 @@
                     lbl_labor_card: "Labor Card",
                     lbl_ins_exp: "Insurance Exp",
                     btn_delete_emp: "Delete",
-                    btn_print: "Print Profile",
                     btn_save_file: "Save File",
                     modal_edit_att: "Edit Attendance",
                     lbl_date: "Date",
@@ -1432,9 +1565,9 @@
                     search: "Search...",
                     reason_ph: "Reason for leave...",
                     btn_clear_logs: "Clear Logs",
-                    lbl_filter_start: "بداية",
-                    lbl_filter_end: "نهاية",
-                    ph_filter_emp: "فلتر اسم الموظف",
+                    lbl_filter_start: "Start",
+                    lbl_filter_end: "End",
+                    ph_filter_emp: "Filter by name",
                     day_sun: "Sunday", day_mon: "Monday", day_tue: "Tuesday", day_wed: "Wednesday", day_thu: "Thursday", day_fri: "Friday", day_sat: "Saturday"
                 },
                 ar: {
@@ -1470,7 +1603,6 @@
                     btn_print: "طباعة الجدول",
                     btn_export_excel: "تصدير Excel",
                     btn_export_csv: "تصدير CSV",
-                    btn_print: "طباعة / PDF",
                     btn_new_req: "طلب جديد",
                     modal_edit_shift: "تعديل ورديات العمل",
                     lbl_emp: "الموظف",
@@ -1498,7 +1630,6 @@
                     lbl_labor_card: "بطاقة العمل",
                     lbl_ins_exp: "تاريخ انتهاء التأمين",
                     btn_delete_emp: "حذف",
-                    btn_print: "طباعة الملف",
                     btn_save_file: "حفظ الملف",
                     modal_edit_att: "تعديل الحضور",
                     lbl_date: "التاريخ",
@@ -1547,14 +1678,34 @@
             }
         };
 
-        // Simple Logger Implementation
+        // Enhanced Logger Implementation
         const Logger = {
             logs: [],
+            init() {
+                try {
+                    const savedLogs = localStorage.getItem(CONFIG.storageKeys.logs);
+                    if(savedLogs) {
+                        this.logs = JSON.parse(savedLogs);
+                    }
+                } catch(e) {
+                    console.error("Failed to load logs from localStorage", e);
+                }
+            },
             log(level, message) {
-                const logEntry = { level, message, timestamp: new Date().toISOString() };
+                const logEntry = { 
+                    level, 
+                    message, 
+                    timestamp: new Date().toISOString() 
+                };
                 this.logs.push(logEntry);
+                
+                // Keep only last 1000 logs
+                if(this.logs.length > 1000) {
+                    this.logs = this.logs.slice(-1000);
+                }
+                
                 console.log(`[${level.toUpperCase()}] ${message}`);
-                // Persist logs if needed
+                
                 try {
                     localStorage.setItem(CONFIG.storageKeys.logs, JSON.stringify(this.logs));
                 } catch(e) {
@@ -1564,6 +1715,10 @@
             clear() {
                 this.logs = [];
                 localStorage.removeItem(CONFIG.storageKeys.logs);
+                app.showToast('Logs cleared', 'info');
+            },
+            getLogs() {
+                return this.logs;
             }
         };
 
@@ -1577,7 +1732,7 @@
                 currentYear: new Date().getFullYear(),
                 searchTerm: '', 
                 reqSearchTerm: '',
-                lang: 'ar', // Default to Arabic based on request
+                lang: 'ar',
                 activeTab: 'summary',
                 pin: '',
                 isLocked: false,
@@ -1593,12 +1748,16 @@
                 try {
                     this.showLoading();
                     
+                    // Initialize Logger
+                    Logger.init();
+                    Logger.log('info', 'HR Master v6.3 initialized');
+                    
                     // Load Dependencies
                     if (typeof Chart === 'undefined') {
-                        console.warn("Chart.js library is missing. Charts will not be rendered.");
+                        Logger.log('warn', "Chart.js library is missing. Charts will not be rendered.");
                     }
                     if (typeof XLSX === 'undefined') {
-                        console.warn("XLSX library is missing. Excel export disabled.");
+                        Logger.log('warn', "XLSX library is missing. Excel export disabled.");
                     }
 
                     // Initial Renders
@@ -1612,9 +1771,9 @@
                     this.renderDateSelectors();
                     this.checkAlerts();
                     this.renderPinPad();
-                    this.switchTab('summary'); // Default to Summary
+                    this.switchTab('summary');
                     
-                    // Listeners
+                    // Event Listeners
                     document.getElementById('monthSelect').addEventListener('change', (e) => { 
                         this.data.currentMonth = parseInt(e.target.value); 
                         if(this.data.activeTab === 'summary') this.renderSummary();
@@ -1638,21 +1797,26 @@
                     // Keyboard shortcuts
                     document.addEventListener('keydown', (e) => {
                         if (e.key === 'Escape' && document.querySelector('.modal.active')) app.closeModals();
+                        if (e.key === 'F2' && !this.data.isLocked) app.openEmployeeModal();
                     });
 
-                    // Clock
-                    setInterval(() => {
-                        const now = new Date();
-                        document.getElementById('clock').innerText = now.toTimeString().slice(0,5);
-                    }, 1000);
+                    // Real-time clock
+                    this.updateClock();
+                    setInterval(() => this.updateClock(), 1000);
                     
+                    Logger.log('info', 'Application initialization completed successfully');
                 } catch (initError) {
-                    alert("Initialization Error: " + initError.message);
+                    Logger.log('error', `Initialization failed: ${initError.message}`);
+                    this.showToast(`Initialization Error: ${initError.message}`, 'error');
                     console.error("Init failed: " + initError.message);
-                    this.hideLoading(); 
                 } finally {
                     this.hideLoading();
                 }
+            },
+            
+            updateClock() {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toTimeString().slice(0,5);
             },
             
             setupSummaryDefaults() {
@@ -1661,6 +1825,8 @@
                 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 document.getElementById('summaryFilterStart').value = firstDay.toISOString().split('T')[0];
                 document.getElementById('summaryFilterEnd').value = lastDay.toISOString().split('T')[0];
+                this.data.summaryFilters.start = firstDay.toISOString().split('T')[0];
+                this.data.summaryFilters.end = lastDay.toISOString().split('T')[0];
             },
 
             renderPinPad() {
@@ -1693,6 +1859,8 @@
                 if(this.data.isLocked) return;
                 document.getElementById('pinInput').value = '';
                 document.getElementById('lockScreenModal').classList.add('active');
+                document.body.classList.add('locked-screen');
+                Logger.log('info', 'System locked by user');
             },
 
             unlockSystem(pin) {
@@ -1713,6 +1881,7 @@
                     } else {
                         this.showToast('Invalid PIN', 'error');
                         this.shakePinPad();
+                        Logger.log('warn', 'Failed unlock attempt with invalid PIN');
                     }
                 }
             },
@@ -1735,7 +1904,7 @@
                         let alertList = [];
                         if(emp.passportExp && emp.passportExp !== '') {
                             const expDate = new Date(emp.passportExp);
-                            const daysDiff = Math.floor((expDate - today) / (1000 * 60 * 24));
+                            const daysDiff = Math.floor((expDate - today) / (1000 * 60 * 60 * 24));
                             if(daysDiff > 0 && daysDiff <= warningDays) {
                                 alertList.push(`Passport expiring in ${daysDiff} days`);
                             }
@@ -1743,7 +1912,7 @@
                         
                         if(emp.eidExp && emp.eidExp !== '') {
                             const expDate = new Date(emp.eidExp);
-                            const daysDiff = Math.floor((expDate - today) / (1000 * 60 * 24));
+                            const daysDiff = Math.floor((expDate - today) / (1000 * 60 * 60 * 24));
                             if(daysDiff > 0 && daysDiff <= warningDays) {
                                 alertList.push(`EID expiring in ${daysDiff} days`);
                             }
@@ -1768,13 +1937,16 @@
                 try {
                     const savedLang = localStorage.getItem(CONFIG.storageKeys.lang);
                     if(savedLang) this.data.lang = savedLang;
-                    else this.data.lang = 'ar'; // Default to Arabic
+                    else this.data.lang = 'ar';
 
                     document.body.dir = this.data.lang === 'ar' ? 'rtl' : 'ltr';
                     document.getElementById('langText').innerText = this.data.lang === 'ar' ? 'عربي' : 'EN';
                     if(this.data.lang === 'ar') document.body.classList.add('rtl-mode');
+                    else document.body.classList.remove('rtl-mode');
+                    
+                    this.translateUI();
                 } catch (e) {
-                    console.error("Language load error", e);
+                    Logger.log('error', `Language load error: ${e.message}`);
                     this.data.lang = 'en';
                 }
             },
@@ -1783,9 +1955,9 @@
                 this.data.lang = this.data.lang === 'ar' ? 'en' : 'ar';
                 localStorage.setItem(CONFIG.storageKeys.lang, this.data.lang);
                 this.loadLang();
-                this.translateUI();
-                this.renderDateSelectors(); // Re-render to update month names
-                this.renderSummary(); // Re-render summary to update column headers
+                this.renderDateSelectors();
+                this.renderSummary();
+                Logger.log('info', `Language switched to ${this.data.lang}`);
             },
             
             translateUI() {
@@ -1828,6 +2000,8 @@
                     if(tab === 'requests') this.renderRequests();
                     if(tab === 'summary') this.renderSummary();
                 }
+                
+                Logger.log('info', `Switched to ${tab} tab`);
             },
             
             showLoading() {
@@ -1871,7 +2045,7 @@
 
                 if(activeTab === 'attendance' || activeTab === 'summary') {
                     content = `<thead><tr>
-                        <th class="print-th">No</th>
+                        <th class="print-th">${t.col_no}</th>
                         <th class="print-th">${t.col_name}</th>
                         <th class="print-th">${t.col_work}</th>
                         <th class="print-th">${t.col_absent}</th>
@@ -1946,6 +2120,7 @@
                     setTimeout(() => {
                         printContainer.innerHTML = '';
                         this.hideLoading();
+                        Logger.log('info', 'Content printed successfully');
                     }, 1000);
                 }, 500);
             },
@@ -2069,7 +2244,9 @@
                     const e = new Date(this.data.summaryFilters.end);
                     periodText = `(${s.toLocaleDateString()} - ${e.toLocaleDateString()})`;
                 } else {
-                    periodText = `(${t.lbl_month} ${document.getElementById('monthSelect').value} ${this.data.currentYear})`;
+                    const monthSelect = document.getElementById('monthSelect');
+                    const monthName = monthSelect ? monthSelect.options[monthSelect.selectedIndex].text : '';
+                    periodText = `(${t.lbl_month} ${monthName} ${this.data.currentYear})`;
                 }
                 document.getElementById('summaryPeriodHeader').innerText = `${t.header_period} ${periodText}`;
                 
@@ -2098,9 +2275,20 @@
                                 { label: t.col_sick, data: stats.map(s => s.sickDays), backgroundColor: '#ede9fe', borderColor: '#5b21b6', borderWidth: 1 }
                             ]
                         },
-                        options: { responsive: true, plugins: { title: { display: true, text: t.chart_title_att } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                        options: { 
+                            responsive: true, 
+                            plugins: { 
+                                title: { display: true, text: t.chart_title_att } 
+                            }, 
+                            scales: { 
+                                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                                x: { ticks: { maxRotation: 45 } }
+                            } 
+                        }
                     });
-                } catch(e) { console.error("Chart Error", e); }
+                } catch(e) { 
+                    Logger.log('error', `Chart creation error: ${e.message}`);
+                }
 
                 const overtimeCtx = document.getElementById('overtimeChart').getContext('2d');
                 try {
@@ -2108,11 +2296,29 @@
                         type: 'line',
                         data: {
                             labels: stats.map(s => s.emp.name),
-                            datasets: [{ label: t.col_ot_hours, data: stats.map(s => s.overtimeHours), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.2)', tension: 0.1 }]
+                            datasets: [{ 
+                                label: t.col_ot_hours, 
+                                data: stats.map(s => s.overtimeHours), 
+                                borderColor: '#f59e0b', 
+                                backgroundColor: 'rgba(245, 158, 11, 0.2)', 
+                                tension: 0.1,
+                                fill: true 
+                            }]
                         },
-                        options: { responsive: true, plugins: { title: { display: true, text: t.chart_title_ot } }, scales: { y: { beginAtZero: true } } }
+                        options: { 
+                            responsive: true, 
+                            plugins: { 
+                                title: { display: true, text: t.chart_title_ot } 
+                            }, 
+                            scales: { 
+                                y: { beginAtZero: true },
+                                x: { ticks: { maxRotation: 45 } }
+                            } 
+                        }
                     });
-                } catch(e) { console.error("Chart Error", e); }
+                } catch(e) { 
+                    Logger.log('error', `Chart creation error: ${e.message}`);
+                }
             },
             
             // --- Helper Methods ---
@@ -2227,6 +2433,7 @@
                 document.getElementById('shiftModal').classList.add('active');
                 document.getElementById('shiftModal').dataset.empId = empId;
                 document.getElementById('shiftModal').dataset.dayIdx = dayIdx;
+                Logger.log('info', `Opened shift modal for ${emp.name}`);
             },
             
             toggleShiftInputs() {
@@ -2239,6 +2446,7 @@
                 const modal = document.getElementById('shiftModal');
                 const empId = modal.dataset.empId;
                 const dayIdx = parseInt(modal.dataset.dayIdx);
+                const emp = this.data.employees.find(e => e.id === empId);
                 if (!this.data.schedule[empId]) this.data.schedule[empId] = {};
                 if (isClear) {
                     this.data.schedule[empId][dayIdx] = { off: true };
@@ -2255,6 +2463,7 @@
                 this.renderSchedule();
                 this.closeModals();
                 this.showToast('Schedule updated');
+                Logger.log('info', `Shift saved for ${emp.name}, day ${dayIdx}`);
             },
 
             openEmployeeModal(id = null) {
@@ -2281,6 +2490,7 @@
                     document.getElementById('deleteEmpBtn').style.display = 'none';
                 }
                 document.getElementById('employeeModal').classList.add('active');
+                Logger.log('info', `Opened employee modal for ${emp ? emp.name : 'new employee'}`);
             },
 
             saveEmployee() {
@@ -2304,20 +2514,25 @@
                 if (id) {
                     const idx = this.data.employees.findIndex(e => e.id === id);
                     this.data.employees[idx] = { ...this.data.employees[idx], ...empData };
+                    Logger.log('info', `Employee updated: ${empData.name}`);
                 } else {
-                    empData.id = 'emp_' + Date.now();
+                    empData.id = 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                     this.data.employees.push(empData);
+                    Logger.log('info', `Employee added: ${empData.name}`);
                 }
                 this.saveData();
                 this.renderTable();
                 this.renderSchedule();
                 this.closeModals();
+                this.checkAlerts();
                 this.showToast(id ? 'Employee updated' : 'Employee added');
             },
 
             deleteEmployee() {
                 const id = document.getElementById('editEmpId').value;
-                if (!confirm('Delete this employee? All attendance and schedule data will be lost.')) return;
+                const emp = this.data.employees.find(e => e.id === id);
+                if (!emp) return;
+                if (!confirm(`Delete ${emp.name}? All attendance and schedule data will be lost.`)) return;
                 this.data.employees = this.data.employees.filter(e => e.id !== id);
                 delete this.data.attendance[id];
                 delete this.data.schedule[id];
@@ -2326,12 +2541,16 @@
                 this.renderSchedule();
                 this.closeModals();
                 this.showToast('Employee deleted');
+                Logger.log('info', `Employee deleted: ${emp.name}`);
             },
 
             showToast(message, type = 'success') {
                 const toast = document.getElementById('toast');
                 const icon = toast.querySelector('i');
-                icon.className = type === 'error' ? 'fas fa-exclamation-circle' : type === 'info' ? 'fas fa-info-circle' : 'fas fa-check-circle';
+                icon.className = type === 'error' ? 'fas fa-exclamation-circle' : 
+                                 type === 'info' ? 'fas fa-info-circle' : 
+                                 type === 'warning' ? 'fas fa-exclamation-triangle' : 
+                                 'fas fa-check-circle';
                 document.getElementById('toastMsg').innerText = message;
                 toast.className = `toast ${type} show`;
                 setTimeout(() => toast.classList.remove('show'), 3000);
@@ -2346,6 +2565,7 @@
                 const empSelect = document.getElementById('reqEmpSelect');
                 empSelect.innerHTML = this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
                 document.getElementById('requestModal').classList.add('active');
+                Logger.log('info', 'Opened leave request modal');
             },
 
             calculateReturnDate() {
@@ -2379,6 +2599,7 @@
                 this.renderRequests();
                 this.closeModals();
                 this.showToast('Request submitted');
+                Logger.log('info', `Leave request submitted by ${emp.name}`);
             },
 
             handleRequest(id, status) {
@@ -2391,6 +2612,7 @@
                 this.saveData();
                 this.renderRequests();
                 this.showToast(`Request ${status}`);
+                Logger.log('info', `Leave request ${id} ${status}`);
             },
 
             applyLeaveToAttendance(req) {
@@ -2413,8 +2635,10 @@
                     this.data.attendance = JSON.parse(localStorage.getItem(CONFIG.storageKeys.data) || '{}');
                     this.data.schedule = JSON.parse(localStorage.getItem(CONFIG.storageKeys.schedule) || '{}');
                     this.data.requests = JSON.parse(localStorage.getItem(CONFIG.storageKeys.leaves) || '[]');
+                    Logger.log('info', `Data loaded: ${this.data.employees.length} employees, ${this.data.requests.length} requests`);
                 } catch(e) {
-                    console.error("Failed to load data from localStorage", e);
+                    Logger.log('error', `Failed to load data from localStorage: ${e.message}`);
+                    this.showToast("Failed to load data. Storage may be corrupted.", 'error');
                 }
             },
 
@@ -2425,7 +2649,7 @@
                     localStorage.setItem(CONFIG.storageKeys.schedule, JSON.stringify(this.data.schedule));
                     localStorage.setItem(CONFIG.storageKeys.leaves, JSON.stringify(this.data.requests));
                 } catch(e) {
-                    console.error("Failed to save data to localStorage", e);
+                    Logger.log('error', `Failed to save data to localStorage: ${e.message}`);
                     this.showToast("Failed to save data. Storage may be full.", 'error');
                 }
             },
@@ -2435,6 +2659,7 @@
                 const isDark = document.body.classList.contains('dark-mode');
                 localStorage.setItem(CONFIG.storageKeys.theme, isDark ? 'dark' : 'light');
                 document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                Logger.log('info', `Theme switched to ${isDark ? 'dark' : 'light'} mode`);
             },
 
             loadTheme() { 
@@ -2454,9 +2679,15 @@
                 const m = this.data.lang === 'ar' ? 
                     ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"] :
                     ["January","February","March","April","May","June","July","August","September","October","November","December"];
-                document.getElementById('monthSelect').innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
+                const monthSelect = document.getElementById('monthSelect');
+                if (monthSelect) {
+                    monthSelect.innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
+                }
                 const y = [2024,2025,2026,2027,2028];
-                document.getElementById('yearSelect').innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
+                const yearSelect = document.getElementById('yearSelect');
+                if (yearSelect) {
+                    yearSelect.innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
+                }
             },
 
             handleImageUpload(e) {
@@ -2479,20 +2710,26 @@
                 const empSelect = document.getElementById('otEmpSelect');
                 empSelect.innerHTML = this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
                 document.getElementById('otModal').classList.add('active');
+                Logger.log('info', 'Opened overtime modal');
             },
 
             openBulkModal() {
                 const empSelect = document.getElementById('bulkEmpSelect');
                 empSelect.innerHTML = this.data.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
                 document.getElementById('bulkModal').classList.add('active');
+                Logger.log('info', 'Opened bulk update modal');
             },
 
             applyQuickOT() {
                 const empId = document.getElementById('otEmpSelect').value;
+                const emp = this.data.employees.find(e => e.id === empId);
                 const start = new Date(document.getElementById('otStart').value);
                 const end = new Date(document.getElementById('otEnd').value);
                 const hours = parseFloat(document.getElementById('otHours').value);
-                if (isNaN(start.getTime()) || isNaN(end.getTime()) || isNaN(hours)) { this.showToast('Invalid input', 'error'); return; }
+                if (isNaN(start.getTime()) || isNaN(end.getTime()) || isNaN(hours)) { 
+                    this.showToast('Invalid input', 'error'); 
+                    return; 
+                }
                 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                     const key = `${d.getFullYear()}_${d.getMonth()}`;
                     const day = d.getDate();
@@ -2505,14 +2742,19 @@
                 this.renderTable();
                 this.closeModals();
                 this.showToast('Overtime applied');
+                Logger.log('info', `Overtime applied to ${emp.name}`);
             },
 
             applyBulkAction() {
                 const empId = document.getElementById('bulkEmpSelect').value;
+                const emp = this.data.employees.find(e => e.id === empId);
                 const status = document.getElementById('bulkStatus').value;
                 const start = new Date(document.getElementById('bulkStart').value);
                 const end = new Date(document.getElementById('bulkEnd').value);
-                if (isNaN(start.getTime()) || isNaN(end.getTime())) { this.showToast('Invalid dates', 'error'); return; }
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) { 
+                    this.showToast('Invalid dates', 'error'); 
+                    return; 
+                }
                 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                     const key = `${d.getFullYear()}_${d.getMonth()}`;
                     const day = d.getDate();
@@ -2524,6 +2766,7 @@
                 this.renderTable();
                 this.closeModals();
                 this.showToast('Bulk action applied');
+                Logger.log('info', `Bulk action applied to ${emp.name}`);
             },
 
             openAttendanceModal(empId, day) {
@@ -2537,6 +2780,7 @@
                 document.getElementById('attendanceModal').classList.add('active');
                 document.getElementById('attendanceModal').dataset.empId = empId;
                 document.getElementById('attendanceModal').dataset.day = day;
+                Logger.log('info', `Opened attendance modal for ${emp.name}`);
             },
 
             toggleHoursInput() {
@@ -2548,6 +2792,7 @@
                 const modal = document.getElementById('attendanceModal');
                 const empId = modal.dataset.empId;
                 const day = parseInt(modal.dataset.day);
+                const emp = this.data.employees.find(e => e.id === empId);
                 const status = document.getElementById('modalStatus').value;
                 const hours = parseFloat(document.getElementById('modalHours').value) || 0;
                 const key = `${this.data.currentYear}_${this.data.currentMonth}`;
@@ -2558,10 +2803,16 @@
                 this.renderTable();
                 this.closeModals();
                 this.showToast('Attendance updated');
+                Logger.log('info', `Attendance updated for ${emp.name}`);
             },
 
             downloadBackup() {
-                const dataStr = JSON.stringify({ employees: this.data.employees, attendance: this.data.attendance, schedule: this.data.schedule, requests: this.data.requests }, null, 2);
+                const dataStr = JSON.stringify({ 
+                    employees: this.data.employees, 
+                    attendance: this.data.attendance, 
+                    schedule: this.data.schedule, 
+                    requests: this.data.requests 
+                }, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2570,6 +2821,7 @@
                 a.click();
                 URL.revokeObjectURL(url);
                 this.showToast('Backup downloaded');
+                Logger.log('info', 'Backup downloaded');
             },
             
             importCSV(input) {
@@ -2582,16 +2834,26 @@
                     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
                     const nameIdx = headers.indexOf('name');
                     if (nameIdx === -1) { this.showToast('CSV must have a "name" column', 'error'); return; }
+                    let importedCount = 0;
                     for (let i = 1; i < lines.length; i++) {
                         const vals = lines[i].split(',').map(v => v.trim());
                         if (vals[nameIdx]) {
-                            this.data.employees.push({ id: 'emp_' + Date.now() + '_' + i, name: vals[nameIdx] });
+                            this.data.employees.push({ 
+                                id: 'emp_' + Date.now() + '_' + i,
+                                name: vals[nameIdx],
+                                jobNumber: vals[headers.indexOf('jobnumber')] || '',
+                                phone: vals[headers.indexOf('phone')] || '',
+                                nationality: vals[headers.indexOf('nationality')] || ''
+                            });
+                            importedCount++;
                         }
                     }
                     this.saveData();
                     this.renderTable();
                     this.renderSchedule();
-                    this.showToast('Employees imported');
+                    this.showToast(`${importedCount} employees imported`);
+                    Logger.log('info', `${importedCount} employees imported from CSV`);
+                    input.value = '';
                 };
                 reader.readAsText(file);
             },
@@ -2611,9 +2873,13 @@
                         this.renderTable();
                         this.renderSchedule();
                         this.renderRequests();
+                        this.checkAlerts();
                         this.showToast('Backup restored');
+                        Logger.log('info', 'Backup restored successfully');
+                        input.value = '';
                     } catch(err) {
                         this.showToast('Invalid backup file', 'error');
+                        Logger.log('error', `Failed to restore backup: ${err.message}`);
                     }
                 };
                 reader.readAsText(file);
@@ -2623,6 +2889,7 @@
                 if (!confirm('This will delete all data. Are you sure?')) return;
                 localStorage.clear();
                 location.reload();
+                Logger.log('info', 'System reset by user');
             },
 
             toggleSystemMenu() {
@@ -2657,6 +2924,7 @@
                 XLSX.utils.book_append_sheet(wb, ws, "Summary Report");
                 XLSX.writeFile(wb, `HR_Summary_${new Date().toISOString().slice(0,10)}.xlsx`);
                 this.showToast('Excel file downloaded');
+                Logger.log('info', 'Excel report exported');
             },
 
             exportToCSV() {
@@ -2675,15 +2943,132 @@
                 link.click();
                 document.body.removeChild(link);
                 this.showToast('CSV file downloaded');
+                Logger.log('info', 'CSV report exported');
             },
 
             printEmployeeProfile() {
-                // Placeholder for employee profile printing
-                this.showToast("Print Employee Profile - Feature coming soon.", "info");
+                // Basic employee profile printing
+                const empId = document.getElementById('editEmpId').value;
+                if (!empId) {
+                    this.showToast("No employee selected", "error");
+                    return;
+                }
+                const emp = this.data.employees.find(e => e.id === empId);
+                if (!emp) return;
+                
+                const printContainer = document.getElementById('printContainer');
+                printContainer.innerHTML = `
+                    <div style="padding: 20px; font-family: Arial, sans-serif;">
+                        <h1 style="text-align: center; margin-bottom: 30px;">Employee Profile</h1>
+                        <div style="display: flex; align-items: center; margin-bottom: 30px;">
+                            <img src="${emp.photo || 'https://via.placeholder.com/100'}" style="width: 100px; height: 100px; border-radius: 50%; margin-right: 20px;">
+                            <div>
+                                <h2 style="margin: 0;">${emp.name}</h2>
+                                <p style="color: #666;">${emp.jobNumber || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Phone:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${emp.phone || 'N/A'}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Nationality:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${emp.nationality || 'N/A'}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Join Date:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${emp.joinDate || 'N/A'}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Passport No:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${emp.passportNo || 'N/A'}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>EID No:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${emp.eidNo || 'N/A'}</td></tr>
+                        </table>
+                        <div style="text-align: center; margin-top: 40px; font-size: 12px; color: #888;">
+                            Printed on: ${new Date().toLocaleString()} | HR Master v6.3
+                        </div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        printContainer.innerHTML = '';
+                    }, 1000);
+                }, 500);
+                
+                this.showToast('Employee profile printed', 'info');
+                Logger.log('info', `Employee profile printed for ${emp.name}`);
+            },
+
+            // --- New Functions for System Info and Logs ---
+            showSystemInfo() {
+                document.getElementById('sysInfoEmpCount').innerText = this.data.employees.length;
+                document.getElementById('sysInfoReqCount').innerText = this.data.requests.length;
+                
+                // Calculate storage usage
+                let totalSize = 0;
+                for(let key in localStorage) {
+                    if(localStorage.hasOwnProperty(key)) {
+                        totalSize += localStorage[key].length * 2; // Approximate byte size
+                    }
+                }
+                document.getElementById('sysInfoStorage').innerText = `${(totalSize / 1024).toFixed(2)} KB`;
+                
+                document.getElementById('systemInfoModal').classList.add('active');
+                Logger.log('info', 'System info modal opened');
+            },
+
+            showSystemLogs() {
+                this.updateLogsDisplay();
+                document.getElementById('logsModal').classList.add('active');
+                Logger.log('info', 'System logs modal opened');
+            },
+
+            updateLogsDisplay() {
+                const logsBody = document.getElementById('logsBody');
+                if (logsBody) {
+                    const logs = Logger.getLogs();
+                    logsBody.innerHTML = logs.reverse().map(log => `
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid var(--border);">${new Date(log.timestamp).toLocaleTimeString()}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid var(--border);">
+                                <span class="status-badge status-${log.level}">${log.level}</span>
+                            </td>
+                            <td style="padding: 8px; border-bottom: 1px solid var(--border);">${log.message}</td>
+                        </tr>
+                    `).join('');
+                }
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => app.init());
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add some sample data if no employees exist (for demo purposes)
+            setTimeout(() => {
+                if(app.data.employees.length === 0) {
+                    const confirmDemo = confirm("No employees found. Would you like to add sample data for demonstration?");
+                    if(confirmDemo) {
+                        app.data.employees = [
+                            {
+                                id: 'emp_1',
+                                name: 'Ahmed Mohamed',
+                                jobNumber: 'EMP001',
+                                phone: '+971501234567',
+                                nationality: 'Egyptian',
+                                photo: 'https://i.pravatar.cc/80?u=ahmed'
+                            },
+                            {
+                                id: 'emp_2',
+                                name: 'Fatima Al Hashimi',
+                                jobNumber: 'EMP002',
+                                phone: '+971502345678',
+                                nationality: 'Emirati',
+                                photo: 'https://i.pravatar.cc/80?u=fatima'
+                            }
+                        ];
+                        app.saveData();
+                        app.renderTable();
+                        app.renderSchedule();
+                        app.renderSummary();
+                        app.showToast('Sample data loaded', 'info');
+                        Logger.log('info', 'Sample data loaded for demonstration');
+                    }
+                }
+            }, 1000);
+            
+            app.init();
+        });
     </script>
 </body>
 </html>
